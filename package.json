@@ -5,6 +5,7 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "nodemon src/server.ts",
+    "admin": "echo Corran todos! el admin ya se conecto..."
   },
   "repository": {
     "type": "git",
