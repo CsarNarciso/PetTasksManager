@@ -3,7 +3,9 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "nodemon src/server.ts",
+    "admin": "echo Corran todos! el admin ya se conecto 😈..."
   },
   "repository": {
     "type": "git",
@@ -13,10 +15,17 @@
   "license": "ISC",
   "description": "",
   "devDependencies": {
+    "@types/bcrypt": "^5.0.2",
+    "@types/cors": "^2.8.17",
+    "@types/express": "^5.0.1",
+    "@types/jsonwebtoken": "^9.0.9",
+    "@types/node": "^22.15.3",
+    "cors": "^2.8.5",
+    "express": "^5.1.0",
     "mongoose": "^8.14.1",
-    "nodemon": "^3.1.10"
-  },
-  "dependencies": {
-    "express": "^5.1.0"
+    "nodemon": "^3.1.10",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.8.3",
+    "zod": "^3.24.3"
   }
 }
