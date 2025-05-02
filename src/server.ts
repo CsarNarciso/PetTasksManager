@@ -1,7 +1,7 @@
-import express, { Request, Response, Router } from 'express';
-import mongoose from 'mongoose';
+import express, { Request, Response } from 'express';
 import cors from 'cors';
-import { z } from 'zod';
+import connectDB from './utils/database';
+import authRouter from './routes/authRouter';
 
 const app = express();
 const apiRouter = express.Router();
@@ -11,14 +11,19 @@ app.use(cors({
 app.use(express.json()); // Middleware to read JSON in body
 app.use('/api', apiRouter); // Base API router
 
+// Connect to DB (MongoDB)
+connectDB();
 
-// ################## Endpoints ################## //
+// Base Endpoints 
 apiRouter.get('/hello', (req: Request, res: Response) => {
     res.json({ message: 'Admin is online 😈' });
 });
 
+// Routes
+app.use('/auth', authRouter); // Authentication endpoints including login, register, logout, etc
 
-// ################## Run server ################## //
+
+// Run server 
 app.listen(5000, () => {
     console.log('Server running on port 5000');
   });
