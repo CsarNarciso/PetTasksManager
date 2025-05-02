@@ -1,3 +1,4 @@
+
 import express, { Request, Response } from 'express';
 import cors from 'cors';
 import connectDB from './utils/database';
@@ -27,3 +28,4 @@ app.use('/auth', authRouter); // Authentication endpoints including login, regis
 app.listen(5000, () => {
     console.log('Server running on port 5000');
   });
+
