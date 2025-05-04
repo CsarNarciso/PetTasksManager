@@ -13,7 +13,8 @@ export const registerUser = async (req: Request, res: Response) => {
             return res.status(400).json({ message: 'User already exists' });
         }
 
-        const createdUser = userService.create(req.body);
+        //Create new user
+        const createdUser = await userService.create(req.body);
 
         // Generate JWT
         const token = jwt.sign({ userId: createdUser._id }, SECRET, { expiresIn: '1h' });
@@ -30,14 +31,14 @@ export const loginUser = async (req: Request, res: Response) => {
         const { email, password } = req.body;
 
         // Find user
-        const user = await User.findOne({ email });
+        const user = await userService.findByEmail(email);
+        
         if (!user) {
             return res.status(401).json({ message: 'Invalid credentials' });
         }
 
         // Check password
-        const isMatch = await bcrypt.compare(password, user.password);
-        if (!isMatch) {
+        if (!bcrypt.compare(password, user.password)) {
             return res.status(401).json({ message: 'Invalid credentials' });
         }
 
@@ -45,6 +46,7 @@ export const loginUser = async (req: Request, res: Response) => {
         const token = jwt.sign({ userId: user._id }, SECRET, { expiresIn: '1h' });
 
         res.status(200).json({ message: 'Login successful', token });
+        
     } catch (error) {
         res.status(500).json({ message: 'Login failed', error });
     }
