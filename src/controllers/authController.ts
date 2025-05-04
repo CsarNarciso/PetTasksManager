@@ -6,15 +6,20 @@ import userService from '../services/userService';
 const SECRET = process.env.JWT_SECRET || '2c6f24d4e71008765083e2d96e1ccf3d133d51814396a6d8f11a2d87b15ac34c1c38980b67d505642c0d7744b16a17be31e93c6caad5f874f375c5b86789079b';
 
 export const registerUser = async (req: Request, res: Response) => {
+    
     try {
 
+        const data = req.body;
+
         //If user already exists...
-        if (userService.findByEmail(req.body.email) != null) {
+        const existingUser = await userService.findByEmail(data.email);
+
+        if (existingUser) {
             return res.status(400).json({ message: 'User already exists' });
         }
 
         //Create new user
-        const createdUser = await userService.create(req.body);
+        const createdUser = await userService.create(data);
 
         // Generate JWT
         const token = jwt.sign({ userId: createdUser._id }, SECRET, { expiresIn: '1h' });
@@ -26,7 +31,9 @@ export const registerUser = async (req: Request, res: Response) => {
     }
 };
 
+
 export const loginUser = async (req: Request, res: Response) => {
+    
     try {
         const { email, password } = req.body;
 
