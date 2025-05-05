@@ -1,5 +1,6 @@
 import { Request, Response} from 'express';
 import connectDB from '../utils/database';
+import userSchema from '../schemas/userSchema';
 
 export const fetchUserByUsername = async (req: Request, res: Response) => {
     
@@ -8,15 +9,14 @@ export const fetchUserByUsername = async (req: Request, res: Response) => {
         const username = req.query;
 
         // Connect to DB
-        const db = await connectDB();
-        // Use users collection
-        const usersCollection = db.collection('users');
+        await connectDB();
         
         // Fetch user
-        const user = await usersCollection.findOne({username}); 
+        const user = await userSchema.findOne({username}); 
 
         if (!user) {
-            return res.status(404).json({ message: "Not found user" });
+            res.status(404).json({ message: "Not user found" });
+            return;
         }
         res.status(200).json({ user });
     } catch (error) {
@@ -25,22 +25,21 @@ export const fetchUserByUsername = async (req: Request, res: Response) => {
 };
 
 
-export const listUsersyou = async (req: Request, res: Response) => {
+export const listUsers = async (req: Request, res: Response) => {
     
     try {
-        // Connect to DB and use collection
-        const db = await connectDB();
-        const usersCollection = db.collection('users');
-
-        // Fetch users
-        const users = await usersCollection.find();
+        // Connect to DB
+        await connectDB();
         
-        if (!users) {
-            res.status(404).json({ message: 'Not found users' });
+        // Fetch user
+        const usersJSON = await userSchema.find(); 
+        
+        if (!usersJSON) {
+            res.status(404).json({ message: 'Not users found' });
             return;
         }
 
-        res.status(200).json({ users });
+        res.status(200).json({ usersJSON });
     } catch (error) {
         res.status(500).json({ message: 'Server error', error });
     }

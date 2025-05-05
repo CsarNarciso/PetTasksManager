@@ -8,8 +8,9 @@ const MONGO_URI = process.env.MONGO_URI || `mongodb://${dbHost}:${dbPort}/${dbNa
 
 const connectDB = async () => {
     try {
-        await mongoose.connect(MONGO_URI);
+        const connection = await mongoose.connect(MONGO_URI);
         console.log('MongoDB connected successfully!');
+        return connection;
     } catch (error) {
         console.error('Connection to MongoDB was refused:', error);
         process.exit(1);
