@@ -1,15 +1,10 @@
 import { Request, Response} from 'express';
-import connectDB from '../utils/database';
 import userSchema from '../schemas/userSchema';
 
 export const fetchUserByUsername = async (req: Request, res: Response) => {
     
     try {
-
         const username = req.query;
-
-        // Connect to DB
-        await connectDB();
         
         // Fetch user
         const user = await userSchema.findOne({username}); 
@@ -28,9 +23,6 @@ export const fetchUserByUsername = async (req: Request, res: Response) => {
 export const listUsers = async (req: Request, res: Response) => {
     
     try {
-        // Connect to DB
-        await connectDB();
-        
         // Fetch user
         const usersJSON = await userSchema.find(); 
         
