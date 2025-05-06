@@ -16,4 +16,8 @@ async function findByEmail(email: string) {
     return User.findOne({ email });
 }
 
-export default {create, findByEmail};
+async function findByUsername(username: string) {
+    return User.findOne({ username });
+}
+
+export default {create, findByEmail, findByUsername};

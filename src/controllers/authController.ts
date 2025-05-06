@@ -8,7 +8,7 @@ const SECRET = process.env.JWT_SECRET || '2c6f24d4e71008765083e2d96e1ccf3d133d51
 
 // Schema for validation in runtime for login
 const loginSchema = z.object({
-    email: z.string().email(),
+    input: z.union([z.string(), z.string().email()]),
     password: z.string().min(8),
 });
 // Schema for user creation validation in runtime
@@ -49,10 +49,15 @@ export const registerUser = async (req: Request, res: Response) => {
 export const loginUser = async (req: Request, res: Response) => {
     
     try {
-        const { email, password } = loginSchema.parse(req.body);
+        const { input, password } = loginSchema.parse(req.body);
 
-        // Find user
-        const user = await userService.findByEmail(email);
+        // Find user by email or username
+        let user = "";
+        if (/\S+@\S+\.\S+/.test(input)) {
+            user = await userService.findByEmail(input);
+        } else {
+            user = await userService.findByUsername(input);
+        }
         
         if (!user) {
             res.status(401).json({ message: 'Invalid credentials' });
