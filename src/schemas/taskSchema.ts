@@ -1,4 +1,4 @@
-import { Schema, model } from 'mongoose';
+import mongoose, { Schema, model } from 'mongoose';
 
 const taskSchema = new Schema({
 
@@ -8,10 +8,16 @@ const taskSchema = new Schema({
         required:true, 
         unique:true 
     },
-	isComplete: { 
-		
+	isCompleted: { 
+
 		type:Boolean, 
 		default:false
+    },
+    userId: {
+        
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'users',
+        required: true
     }
 });
 

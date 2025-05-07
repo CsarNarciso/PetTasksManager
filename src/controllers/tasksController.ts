@@ -1,17 +1,35 @@
 import { Request, Response} from 'express';
-import taskSchema from '../schemas/taskSchema';
+import Task from '../schemas/taskSchema';
+import { z } from 'zod';
+
+// Schema
+const taskByIdSchema = z.object({
+    taskId: z.string().length(24)
+});
 
 export const createTask = async (req: Request, res: Response) => {
-	try {
-		res.status(200).json({ message: 'Task created!' });
+    const data = new Task(req.body);
+    
+    try {
+        const task = await Task.create(data);
+		res.status(200).json({ message: 'Task completed!', request_body: task});
     } catch (error) {
         res.status(500).json({ message: 'Internal server error', error });
     }
 }
 
 export const markTaskAsCompleted = async (req: Request, res: Response) => {
-	try {
-		res.status(200).json({ message: 'Task completed!' });
+	// Get body data
+    const { taskId } = taskByIdSchema.parse(req.params);
+    
+    try {
+        const task = await Task.findByIdAndUpdate(taskId, {isCompleted:true}, {new:true});
+
+        if (!task) {
+            return res.status(404).json({ message: 'Task not found' });
+        }
+
+		res.status(201).json({ message: 'Task completed!', request_body: task});
     } catch (error) {
         res.status(500).json({ message: 'Internal server error', error });
     }
