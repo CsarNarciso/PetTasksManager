@@ -22,6 +22,8 @@ export const registerUser = async (req: Request, res: Response) => {
     
     try {
         const data = userCreationSchema.parse(req.body);
+        const hashedPassword = await bcrypt.hash(data.password, 10);
+        console.log("Request body", {username:data.username, email:data.email, hashedPassword});
 
         //If user already exists...
         const existingUser = await userService.findByEmail(data.email);

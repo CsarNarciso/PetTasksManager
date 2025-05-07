@@ -1,11 +1,6 @@
 import { Request, Response} from 'express';
 import taskSchema from '../schemas/taskSchema';
 
-tasksRouter.post('/', createTask);
-tasksRouter.put('/', markTaskAsCompleted);
-tasksRouter.delete('/', deleteTask);
-tasksRouter.get('/', listTasksByUsername);
-
 export const createTask = async (req: Request, res: Response) => {
 	try {
 		res.status(200).json({ message: 'Task created!' });
