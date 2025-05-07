@@ -3,6 +3,7 @@ import express, { Request, Response } from 'express';
 import cors from 'cors';
 import authRouter from './routes/authRouter';
 import usersRouter from './routes/usersRouter';
+import tasksRouter from './routes/tasksRouter';
 import connectDB from './utils/database';
 
 // API settings
@@ -25,6 +26,7 @@ apiRouter.get('/hello', (req: Request, res: Response) => {
 // Routes
 app.use('/auth', authRouter); 
 app.use('/users', usersRouter);
+app.use('/tasks', tasksRouter);
 
 // Run server 
 app.listen(5000, () => {
