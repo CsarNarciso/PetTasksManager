@@ -1,3 +1,14 @@
+# MongoDB service (mongod)
+## 🚀 1. Start MongoDB service
+```sh
+sudo systemctl start mongod
+```
+
+## 2. Check MongoDB service status
+```sh
+sudo systemctl status mongod
+```
+
 
 # MongoDB Shell Guide (mongosh)
 This guide helps you practice basic MongoDB operations using the shell (`mongosh`), with short explanations and corresponding commands.

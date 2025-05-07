@@ -21,7 +21,6 @@ const userCreationSchema = z.object({
 export const registerUser = async (req: Request, res: Response) => {
     
     try {
-
         const data = userCreationSchema.parse(req.body);
 
         //If user already exists...
@@ -50,9 +49,11 @@ export const loginUser = async (req: Request, res: Response) => {
     
     try {
         const { input, password } = loginSchema.parse(req.body);
+        const hashedPassword = await bcrypt.hash(password, 10);
+        console.log("Request body", {input, hashedPassword});
 
         // Find user by email or username
-        let user = "";
+        let user;
         if (/\S+@\S+\.\S+/.test(input)) {
             user = await userService.findByEmail(input);
         } else {
