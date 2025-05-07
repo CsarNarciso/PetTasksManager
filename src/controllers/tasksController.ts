@@ -13,7 +13,7 @@ export const createTask = async (req: Request, res: Response) => {
     }
 }
 
-export const markTaskAsCompleted = async (req: Request, res: Response) => {
+export const setTaskAsCompleted = async (req: Request, res: Response) => {
 	// Get body data
     const taskId = req.query.taskId;
     

@@ -1,10 +1,10 @@
 import { Router } from 'express';
-import { createTask, markTaskAsCompleted, deleteTask, listTasksByUsername } from '../controllers/tasksController';
+import { createTask, setTaskAsCompleted, deleteTask, listTasksByUsername } from '../controllers/tasksController';
 
 const tasksRouter = Router();
 
 tasksRouter.post('/', createTask);
-tasksRouter.patch('/', markTaskAsCompleted);
+tasksRouter.patch('/', setTaskAsCompleted);
 tasksRouter.delete('/', deleteTask);
 tasksRouter.get('/', listTasksByUsername);
 
