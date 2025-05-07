@@ -2,11 +2,6 @@ import { Request, Response} from 'express';
 import Task from '../schemas/taskSchema';
 import { z } from 'zod';
 
-// Schema
-const taskByIdSchema = z.object({
-    taskId: z.string().length(24)
-});
-
 export const createTask = async (req: Request, res: Response) => {
     const data = new Task(req.body);
     
@@ -20,13 +15,13 @@ export const createTask = async (req: Request, res: Response) => {
 
 export const markTaskAsCompleted = async (req: Request, res: Response) => {
 	// Get body data
-    const { taskId } = taskByIdSchema.parse(req.params);
+    const taskId = req.query.taskId;
     
     try {
         const task = await Task.findByIdAndUpdate(taskId, {isCompleted:true}, {new:true});
 
         if (!task) {
-            return res.status(404).json({ message: 'Task not found' });
+            res.status(404).json({ message: 'Task not found' });
         }
 
 		res.status(201).json({ message: 'Task completed!', request_body: task});

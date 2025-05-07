@@ -4,7 +4,7 @@ import { createTask, markTaskAsCompleted, deleteTask, listTasksByUsername } from
 const tasksRouter = Router();
 
 tasksRouter.post('/', createTask);
-tasksRouter.patch('/:taskId', markTaskAsCompleted);
+tasksRouter.patch('/', markTaskAsCompleted);
 tasksRouter.delete('/', deleteTask);
 tasksRouter.get('/', listTasksByUsername);
 
