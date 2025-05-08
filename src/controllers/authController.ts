@@ -112,13 +112,17 @@ export const verifyUserSession = (req: Request, res: Response) => {
     }
 
     try {
-        jwt.verify(token, "secret-key");
-        res.status(200).json({ authenticated: true });
+        const decoded = jwt.verify(token, SECRET);
+        res.status(200).json({ authenticated: true, user: {userId: decoded} }); //User's info
     } catch (error) {
+        let errorMessage = 'Invalid token';
+        if (error instanceof jwt.TokenExpiredError) {
+            errorMessage = 'Token expired';
+        }
+
         res.status(401).json({ 
             authenticated: false,
-            message: 'Invalid or expired token',
-            error: process.env.NODE_ENV === 'development'
+            message: errorMessage
         });
     }
 };
