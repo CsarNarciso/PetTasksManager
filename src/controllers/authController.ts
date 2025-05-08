@@ -3,7 +3,6 @@ import bcrypt from 'bcrypt'; // Used to hash password while saving or retrieving
 import jwt from 'jsonwebtoken';
 import userService from '../services/userService';
 import { z } from 'zod';
-import cookie from 'cookie';
 
 const SECRET = process.env.JWT_SECRET || '2c6f24d4e71008765083e2d96e1ccf3d133d51814396a6d8f11a2d87b15ac34c1c38980b67d505642c0d7744b16a17be31e93c6caad5f874f375c5b86789079b';
 
@@ -43,15 +42,15 @@ export const registerUser = async (req: Request, res: Response) => {
         const token = jwt.sign({ userId: createdUser._id }, SECRET, { expiresIn: '1h' });
         console.log("Token generated");
 
-        res.setHeader("Set-Cookie", cookie.serialize("authToken", token, {
+        res.cookie("authToken", token, {
             httpOnly: true,
             secure: process.env.NODE_ENV === "production", // HTTPS is only available in production, in development it uses HTTP
             sameSite: "strict", // CSRF protection
             path: "/", // Available in the entire app
-            maxAge: 3600000
-        }));
+            maxAge: 3600000 // 1 hour in miliseconds
+        });
 
-        console.log("Cookie with JWT");
+        console.log("Cookie with JWT set successfully");
 
         res.status(201).json({ message: 'User registered successfully'});
 
@@ -103,16 +102,23 @@ export const logoutUser = (req: Request, res: Response) => {
 };
 
 export const verifyUserSession = (req: Request, res: Response) => {
-    const token = req.cookies.token;
+    const token = req.cookies.authToken;
 
     if (!token) {
-        res.status(401).json({ message: "Unauthorized" });
+        res.status(401).json({ 
+            authenticated: false, 
+            message: "No authentication token found" 
+        });
     }
 
     try {
         jwt.verify(token, "secret-key");
         res.status(200).json({ authenticated: true });
     } catch (error) {
-        res.status(403).json({ message: "Invalid token" });
+        res.status(401).json({ 
+            authenticated: false,
+            message: 'Invalid or expired token',
+            error: process.env.NODE_ENV === 'development'
+        });
     }
 };

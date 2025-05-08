@@ -5,9 +5,11 @@ import authRouter from './routes/authRouter';
 import usersRouter from './routes/usersRouter';
 import tasksRouter from './routes/tasksRouter';
 import connectDB from './utils/database';
+import cookieParser from 'cookie-parser';
 
 // API settings
 const app = express();
+app.use(cookieParser());
 const apiRouter = express.Router();
 app.use(cors({
   origin: 'http://localhost:3000',
