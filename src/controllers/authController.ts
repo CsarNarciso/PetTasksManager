@@ -81,3 +81,23 @@ export const loginUser = async (req: Request, res: Response) => {
         res.status(500).json({ message: 'Login failed', error });
     }
 };
+
+export const logoutUser = (req: Request, res: Response) => {
+    res.clearCookie("token", { httpOnly: true, sameSite: "strict", secure: true });
+    res.status(200).json({ message: "Logged out successfully!" });
+};
+
+export const verifyUserSession = (req: Request, res: Response) => {
+    const token = req.cookies.token;
+
+    if (!token) {
+        res.status(401).json({ message: "Unauthorized" });
+    }
+
+    try {
+        jwt.verify(token, "secret-key");
+        res.status(200).json({ authenticated: true });
+    } catch (error) {
+        res.status(403).json({ message: "Invalid token" });
+    }
+};
