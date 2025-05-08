@@ -3,6 +3,7 @@ import bcrypt from 'bcrypt'; // Used to hash password while saving or retrieving
 import jwt from 'jsonwebtoken';
 import userService from '../services/userService';
 import { z } from 'zod';
+import cookie from 'cookie';
 
 const SECRET = process.env.JWT_SECRET || '2c6f24d4e71008765083e2d96e1ccf3d133d51814396a6d8f11a2d87b15ac34c1c38980b67d505642c0d7744b16a17be31e93c6caad5f874f375c5b86789079b';
 
@@ -19,7 +20,8 @@ const userCreationSchema = z.object({
 });
 
 export const registerUser = async (req: Request, res: Response) => {
-    
+    console.log("Incoming request body:", req.body);
+
     try {
         const data = userCreationSchema.parse(req.body);
         const hashedPassword = await bcrypt.hash(data.password, 10);
@@ -35,14 +37,27 @@ export const registerUser = async (req: Request, res: Response) => {
 
         //Create new user
         const createdUser = await userService.create(data);
+        console.log("Schema creating user");
 
-        // Generate JWT
+        // Generate and sent JWT via cookie
         const token = jwt.sign({ userId: createdUser._id }, SECRET, { expiresIn: '1h' });
+        console.log("Token generated");
 
-        res.status(201).json({ message: 'User registered successfully', token });
+        res.setHeader("Set-Cookie", cookie.serialize("authToken", token, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production", // HTTPS is only available in production, in development it uses HTTP
+            sameSite: "strict", // CSRF protection
+            path: "/", // Available in the entire app
+            maxAge: 3600000
+        }));
+
+        console.log("Cookie with JWT");
+
+        res.status(201).json({ message: 'User registered successfully'});
 
     } catch (error) {
-        res.status(500).json({ message: 'Registration failed', error });
+        console.error('Registration error:', error);
+        res.status(500).json({ message: 'Registration failed', error: process.env.NODE_ENV === 'development' ? error : null });
     }
 };
 
