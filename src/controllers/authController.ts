@@ -4,7 +4,12 @@ import jwt from 'jsonwebtoken';
 import userService from '../services/userService';
 import { z } from 'zod';
 
-const SECRET = process.env.JWT_SECRET || '2c6f24d4e71008765083e2d96e1ccf3d133d51814396a6d8f11a2d87b15ac34c1c38980b67d505642c0d7744b16a17be31e93c6caad5f874f375c5b86789079b';
+//Enable enviroment variables
+require('dotenv').config();
+
+const JWT_SECRET = process.env.JWT_SECRET as string;
+
+
 
 // Schema for validation in runtime for login
 const loginSchema = z.object({
@@ -39,7 +44,7 @@ export const registerUser = async (req: Request, res: Response) => {
         console.log("Schema creating user");
 
         // Generate and sent JWT via cookie
-        const token = jwt.sign({ userId: createdUser._id }, SECRET, { expiresIn: '1h' });
+        const token = jwt.sign({ userId: createdUser._id }, JWT_SECRET, { expiresIn: '1h' });
         console.log("Token generated");
 
         res.cookie("authToken", token, {
@@ -87,7 +92,7 @@ export const loginUser = async (req: Request, res: Response) => {
         }
 
         // Generate JWT
-        const token = jwt.sign({ userId: user._id }, SECRET, { expiresIn: '1h' });
+        const token = jwt.sign({ userId: user._id }, JWT_SECRET, { expiresIn: '1h' });
 
         res.status(200).json({ message: 'Login successful', token });
         
@@ -112,7 +117,7 @@ export const verifyUserSession = (req: Request, res: Response) => {
     }
 
     try {
-        const decoded = jwt.verify(token, SECRET);
+        const decoded = jwt.verify(token, JWT_SECRET);
         res.status(200).json({ authenticated: true, user: {userId: decoded} }); //User's info
     } catch (error) {
         let errorMessage = 'Invalid token';
