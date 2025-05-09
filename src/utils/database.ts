@@ -6,7 +6,7 @@ const dbPort = '27017'; // 27017: Default MongoDB port
 const dbName = 'PetTasksManagerDB';
 const MONGO_URI = process.env.MONGO_URI || `mongodb://${dbHost}:${dbPort}/${dbName}`;
 
-const connectDB = async () => {
+export const connectDB = async () => {
     try {
         const connection = await mongoose.connect(MONGO_URI);
         console.log('MongoDB connected successfully!');
@@ -17,4 +17,16 @@ const connectDB = async () => {
     }
 }
 
-export default connectDB;
+
+export const cleanDB = async () => {
+    try {
+
+        //Drop entire DB
+        await mongoose.connection.dropDatabase();
+        console.log('Database erased');
+
+    } catch (error) {
+        console.error('Something went wrong while dropping database');
+        process.exit(1);
+    }
+}

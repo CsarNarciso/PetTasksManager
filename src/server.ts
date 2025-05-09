@@ -4,7 +4,7 @@ import cors from 'cors';
 import authRouter from './routes/authRouter';
 import usersRouter from './routes/usersRouter';
 import tasksRouter from './routes/tasksRouter';
-import connectDB from './utils/database';
+import {connectDB, cleanDB} from './utils/database';
 import cookieParser from 'cookie-parser';
 
 // API settings
@@ -20,6 +20,9 @@ app.use('/api', apiRouter);
 
 // Connect to DB
 connectDB();
+
+//Clean DB (erase data)
+cleanDB();
 
 // Base Endpoints 
 apiRouter.get('/hello', (req: Request, res: Response) => {
