@@ -23,6 +23,9 @@ const userCreationSchema = z.object({
     password: z.string().min(8), // To check password is at least 8 characters lenght
 });
 
+
+
+
 export const registerUser = async (req: Request, res: Response) => {
     console.log("Incoming request body:", req.body);
 
@@ -57,7 +60,13 @@ export const registerUser = async (req: Request, res: Response) => {
 
         console.log("Cookie with JWT set successfully");
 
-        res.status(201).json({ message: 'User registered successfully'});
+        const userDTO = {
+            id: createdUser?._id,
+            username: createdUser.username,
+            email: createdUser.email
+        };
+
+        res.status(201).json({ message: 'User registered successfully', user: userDTO });
 
     } catch (error) {
         console.error('Registration error:', error);
