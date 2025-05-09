@@ -4,6 +4,7 @@ import jwt from 'jsonwebtoken';
 import userService from '../services/userService';
 import User from '../schemas/userSchema';
 import { userCreationSchema, loginSchema } from "../schemas/authSchema";
+import { z } from 'zod';
 
 import COOKIE_OPTIONS from '../utils/cookieOptions';
 
