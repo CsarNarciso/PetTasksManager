@@ -27,11 +27,16 @@ export const registerUser = async (req: Request, res: Response) => {
         console.log("Request body", {username:data.username, email:data.email, hashedPassword});
 
         //If user already exists...
-        const existingUser = await userService.findByEmail(data.email);
+        const [existingEmail, existingUsername] = await Promise.all([
+            userService.findByEmail(data.email),
+            userService.findByUsername(data.username)
+        ]);
 
-        if (existingUser) {
-            res.status(400).json({ message: 'User already exists' });
-            return;
+        if (existingEmail) {
+            return res.status(400).json({ message: 'Email already in use' });
+        }
+        if (existingUsername) {
+            return res.status(400).json({ message: 'Username already taken' });
         }
 
         //Create new user
