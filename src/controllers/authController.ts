@@ -3,6 +3,7 @@ import bcrypt from 'bcrypt'; // Used to hash password while saving or retrieving
 import jwt from 'jsonwebtoken';
 import userService from '../services/userService';
 import { z } from 'zod';
+import User from '../schemas/userSchema';
 
 const SECRET = process.env.JWT_SECRET || '2c6f24d4e71008765083e2d96e1ccf3d133d51814396a6d8f11a2d87b15ac34c1c38980b67d505642c0d7744b16a17be31e93c6caad5f874f375c5b86789079b';
 
@@ -40,7 +41,7 @@ export const registerUser = async (req: Request, res: Response) => {
 
         //Create new user
         const hashedPassword = await bcrypt.hash(data.password, 10);
-        const createdUser = await userService.create({
+        const createdUser = await User.create({
             username: data.username,
             email: data.email,
             password: hashedPassword
