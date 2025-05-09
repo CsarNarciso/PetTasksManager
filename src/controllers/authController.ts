@@ -18,11 +18,12 @@ const userCreationSchema = z.object({
     password: z.string().min(8), // To check password is at least 8 characters lenght
 });
 
-export const registerUser = async (req: Request, res: Response) => {
-    console.log("Incoming request body:", req.body);
 
+// Endpoints
+export const registerUser = async (req: Request, res: Response) => {
     try {
         const data = userCreationSchema.parse(req.body);
+        console.log("Request body:", req.body);
 
         //If user already exists...
         const [existingEmail, existingUsername] = await Promise.all([
@@ -31,10 +32,10 @@ export const registerUser = async (req: Request, res: Response) => {
         ]);
 
         if (existingEmail) {
-            return res.status(400).json({ message: 'Email already in use' });
+            res.status(400).json({ message: 'Email already in use' });
         }
         if (existingUsername) {
-            return res.status(400).json({ message: 'Username already taken' });
+            res.status(400).json({ message: 'Username already taken' });
         }
 
         //Create new user
@@ -44,7 +45,6 @@ export const registerUser = async (req: Request, res: Response) => {
             email: data.email,
             password: hashedPassword
         });
-        console.log("Schema creating user");
 
         // Generate and sent JWT via cookie
         const token = jwt.sign({ userId: createdUser._id }, SECRET, { expiresIn: '1h' });
@@ -60,11 +60,20 @@ export const registerUser = async (req: Request, res: Response) => {
 
         console.log("Cookie with JWT set successfully");
 
-        res.status(201).json({ message: 'User registered successfully'});
+        res.status(201).json({ 
+            message: 'User registered successfully',
+            user: { id: createdUser._id, username: createdUser.username },
+            accessToken: token
+        });
 
     } catch (error) {
-        console.error('Registration error:', error);
-        res.status(500).json({ message: 'Registration failed', error: process.env.NODE_ENV === 'development' ? error : null });
+        if (error instanceof z.ZodError) {
+            res.status(400).json({ message: 'Validation failed', errors: error.errors });
+        }
+        res.status(500).json({ 
+            message: 'Registration failed', 
+            error: process.env.NODE_ENV === 'development' ? error : null 
+        });
     }
 };
 
