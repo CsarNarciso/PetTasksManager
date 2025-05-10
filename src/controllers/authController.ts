@@ -105,10 +105,21 @@ export const loginUser = async (req: Request, res: Response) => {
             res.status(401).json({ message: 'Invalid credentials' });
         }
 
+        // User DTO for response (without exposing delicate data)
+        const userDTO = {
+            id: user._id,
+            username: user.username,
+            email: user.email
+        };
+
         // Generate JWT
         const token = jwt.sign({ userId: user._id }, JWT_SECRET, { expiresIn: '1h' });
         console.log("User was successfully authenticated using JWT");
-        res.status(200).json({ message: 'Login successful', token });
+        res.status(200).json({ 
+            message: 'Login successful', 
+            token,
+            user: userDTO
+        });
         
     } catch (error) {
         res.status(500).json({ message: 'Login failed', error });
