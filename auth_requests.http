@@ -1,0 +1,36 @@
+### Create a first user
+POST http://localhost:5000/auth/register
+Content-Type: application/json
+
+{
+  "username": "user1",
+  "email": "user1@example.com",
+  "password": "securepassword123"
+}
+
+### Create a second user
+
+POST http://localhost:5000/auth/register
+Content-Type: application/json
+
+{
+  "username": "user2",
+  "email": "user2@example.com",
+  "password": "securepassword123"
+}
+
+### List all users
+
+GET http://localhost:5000/users/
+Content-Type: application/json
+
+
+###
+
+POST http://localhost:5000/auth/login
+Content-Type: application/json
+
+{
+  "input": "user1",
+  "password": "securepassword123"
+}

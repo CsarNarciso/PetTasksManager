@@ -1,0 +1,52 @@
+### Create a task
+POST http://localhost:5000/tasks/
+Content-Type: application/json
+
+{
+    "name": "Task #1",
+    "userId": "681f6a481221725a3fcacfee"
+}
+
+### Create a task
+POST http://localhost:5000/tasks/
+Content-Type: application/json
+
+{
+    "name": "Task #2",
+    "userId": "681f6a4a1221725a3fcacff1"
+}
+
+
+### Create a task
+POST http://localhost:5000/tasks/
+Content-Type: application/json
+
+{
+    "name": "Task #3",
+    "userId": "681f6a4a1221725a3fcacff1"
+}
+ 
+
+### View tasks
+GET http://localhost:5000/tasks/
+Content-Type: application/json
+
+
+### Obtain tasks by userId #1
+GET http://localhost:5000/tasks/search?userId=681f6712634728d0e6652b0d
+Content-Type: application/json
+
+
+### Obtain tasks by userId #2
+GET http://localhost:5000/tasks/search?userId=681f6a4a1221725a3fcacff1
+Content-Type: application/json
+
+
+### Set task as completed
+PATCH http://localhost:5000/tasks?taskId=681f6abe1221725a3fcacffb
+Content-Type: application/json
+
+
+### Delete task
+DELETE http://localhost:5000/tasks?taskId=681f68721221725a3fcacfe0
+Content-Type: application/json

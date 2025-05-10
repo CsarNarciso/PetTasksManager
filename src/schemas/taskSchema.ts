@@ -6,7 +6,7 @@ const taskSchema = new Schema({
 		
 		type:String, 
         required:true, 
-        unique:true 
+        unique:true
     },
 	isCompleted: { 
 

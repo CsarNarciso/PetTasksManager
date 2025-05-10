@@ -8,7 +8,7 @@ export const createTask = async (req: Request, res: Response) => {
     
     try {
         const task = await Task.create(data);
-		res.status(200).json({ message: 'Task completed!', request_body: task});
+		res.status(200).json({ message: 'Task created!', request_body: task});
     } catch (error) {
         res.status(500).json({ message: 'Internal server error', error });
     }
