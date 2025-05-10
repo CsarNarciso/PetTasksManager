@@ -119,29 +119,3 @@ export const logoutUser = (req: Request, res: Response) => {
     res.clearCookie("token", { httpOnly: true, sameSite: "strict", secure: true });
     res.status(200).json({ message: "Logged out successfully!" });
 };
-
-export const verifyUserSession = (req: Request, res: Response) => {
-    const token = req.cookies.authToken;
-
-    if (!token) {
-        res.status(401).json({ 
-            authenticated: false, 
-            message: "No authentication token found" 
-        });
-    }
-
-    try {
-        const decoded = jwt.verify(token, JWT_SECRET);
-        res.status(200).json({ authenticated: true, user: {userId: decoded} }); //User's info
-    } catch (error) {
-        let errorMessage = 'Invalid token';
-        if (error instanceof jwt.TokenExpiredError) {
-            errorMessage = 'Token expired';
-        }
-
-        res.status(401).json({ 
-            authenticated: false,
-            message: errorMessage
-        });
-    }
-};
