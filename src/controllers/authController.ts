@@ -3,6 +3,7 @@ import bcrypt from 'bcrypt'; // Used to hash password while saving or retrieving
 import jwt from 'jsonwebtoken';
 import userService from '../services/userService';
 import { z } from 'zod';
+import User from '../schemas/userSchema';
 
 //Enable enviroment variables
 require('dotenv').config();
@@ -27,12 +28,8 @@ const userCreationSchema = z.object({
 
 
 export const registerUser = async (req: Request, res: Response) => {
-    console.log("Incoming request body:", req.body);
-
     try {
         const data = userCreationSchema.parse(req.body);
-        const hashedPassword = await bcrypt.hash(data.password, 10);
-        console.log("Request body", {username:data.username, email:data.email, hashedPassword});
 
         //If user already exists...
         const existingUser = await userService.findByEmail(data.email);
@@ -43,14 +40,19 @@ export const registerUser = async (req: Request, res: Response) => {
         }
 
         //Create new user
-        const createdUser = await userService.create(data);
-        console.log("Schema creating user");
+        const hashedPassword = await bcrypt.hash(data.password, 10);
+        const createdUser = await User.create({
+            username: data.username,
+            email: data.email,
+            password: hashedPassword
+        });
+        console.log("User created!");
 
         // Generate and sent JWT via cookie
-        const token = jwt.sign({ userId: createdUser._id }, JWT_SECRET, { expiresIn: '1h' });
+        const authToken = jwt.sign({ userId: createdUser._id }, JWT_SECRET, { expiresIn: '1h' });
         console.log("Token generated");
 
-        res.cookie("authToken", token, {
+        res.cookie("authToken", authToken, {
             httpOnly: true,
             secure: process.env.NODE_ENV === "production", // HTTPS is only available in production, in development it uses HTTP
             sameSite: "strict", // CSRF protection
@@ -61,15 +63,18 @@ export const registerUser = async (req: Request, res: Response) => {
         console.log("Cookie with JWT set successfully");
 
         const userDTO = {
-            id: createdUser?._id,
+            id: createdUser._id,
             username: createdUser.username,
             email: createdUser.email
         };
 
-        res.status(201).json({ message: 'User registered successfully', user: userDTO });
+        res.status(201).json({ 
+            message: 'User registered successfully', 
+            user: userDTO,
+            token: authToken
+        });
 
     } catch (error) {
-        console.error('Registration error:', error);
         res.status(500).json({ message: 'Registration failed', error: process.env.NODE_ENV === 'development' ? error : null });
     }
 };
