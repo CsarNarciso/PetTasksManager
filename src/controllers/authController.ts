@@ -2,28 +2,15 @@ import { Request, Response} from 'express';
 import bcrypt from 'bcrypt'; // Used to hash password while saving or retrieving it in responses
 import jwt from 'jsonwebtoken';
 import userService from '../services/userService';
-import { z } from 'zod';
 import User from '../schemas/userSchema';
+import { userCreationSchema, loginSchema } from "../schemas/authSchema";
+
+import COOKIE_OPTIONS from '../utils/cookieOptions';
 
 //Enable enviroment variables
 require('dotenv').config();
 
 const JWT_SECRET = process.env.JWT_SECRET as string;
-
-
-
-// Schema for validation in runtime for login
-const loginSchema = z.object({
-    input: z.union([z.string(), z.string().email()]),
-    password: z.string().min(8),
-});
-// Schema for user creation validation in runtime
-const userCreationSchema = z.object({
-    username: z.string(),
-    email: z.string().email(), // To check for a valid email
-    password: z.string().min(8), // To check password is at least 8 characters lenght
-});
-
 
 
 
@@ -49,16 +36,10 @@ export const registerUser = async (req: Request, res: Response) => {
         console.log("User created!");
 
         // Generate and sent JWT via cookie
-        const authToken = jwt.sign({ userId: createdUser._id }, JWT_SECRET, { expiresIn: '1h' });
+        const token = jwt.sign({ userId: createdUser._id }, JWT_SECRET, { expiresIn: '1h' });
         console.log("Token generated");
 
-        res.cookie("authToken", authToken, {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === "production", // HTTPS is only available in production, in development it uses HTTP
-            sameSite: "strict", // CSRF protection
-            path: "/", // Available in the entire app
-            maxAge: 3600000 // 1 hour in miliseconds
-        });
+        res.cookie("token", token, COOKIE_OPTIONS);
 
         console.log("Cookie with JWT set successfully");
 
@@ -71,7 +52,7 @@ export const registerUser = async (req: Request, res: Response) => {
         res.status(201).json({ 
             message: 'User registered successfully', 
             user: userDTO,
-            token: authToken
+            token: token
         });
 
     } catch (error) {
@@ -114,6 +95,7 @@ export const loginUser = async (req: Request, res: Response) => {
 
         // Generate JWT
         const token = jwt.sign({ userId: user._id }, JWT_SECRET, { expiresIn: '1h' });
+        res.cookie("token", token, COOKIE_OPTIONS);
         console.log("User was successfully authenticated using JWT");
         res.status(200).json({ 
             message: 'Login successful', 
