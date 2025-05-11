@@ -116,7 +116,7 @@ export const logoutUser = (req: Request, res: Response) => {
 
 export const authCheck = (req: Request, res: Response) => {
     
-    const token = req.cookies.token; // 🏆 Leer JWT desde la cookie HTTP-only
+    const token = req.cookies.token; // Leer JWT desde la cookie HTTP-only
     console.log(`TOken: ${token}`);
     
     if (!token) res.status(401).json({ message: 'No autenticado' });
