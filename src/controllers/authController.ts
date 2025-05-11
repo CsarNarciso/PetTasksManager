@@ -36,10 +36,10 @@ export const registerUser = async (req: Request, res: Response) => {
         console.log("User created!");
 
         // Generate and sent JWT via cookie
+        
         const token = jwt.sign({ userId: createdUser._id }, JWT_SECRET, { expiresIn: '1h' });
-        console.log("Token generated");
-
         res.cookie("token", token, COOKIE_OPTIONS);
+        console.log("Token generated");
 
         console.log("Cookie with JWT set successfully");
 
@@ -99,7 +99,7 @@ export const loginUser = async (req: Request, res: Response) => {
         console.log("User was successfully authenticated using JWT");
         res.status(200).json({ 
             message: 'Login successful', 
-            token,
+            token: token,
             user: userDTO
         });
         
@@ -111,4 +111,19 @@ export const loginUser = async (req: Request, res: Response) => {
 export const logoutUser = (req: Request, res: Response) => {
     res.clearCookie("token", { httpOnly: true, sameSite: "strict", secure: true });
     res.status(200).json({ message: "Logged out successfully!" });
+};
+
+export const authCheck = (req: Request, res: Response) => {
+    
+    const token = req.cookies.token; // 🏆 Leer JWT desde la cookie HTTP-only
+    console.log(`TOken: ${token}`);
+    
+    if (!token) res.status(401).json({ message: 'No autenticado' });
+
+    try {
+        const user = jwt.verify(token, JWT_SECRET);
+        res.status(200).json({ message: 'Autenticado', user });
+    } catch (error) {
+        res.status(401).json({ message: 'Token inválido' });
+    }
 };
