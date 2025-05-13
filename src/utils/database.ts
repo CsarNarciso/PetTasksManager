@@ -37,8 +37,8 @@ export const preLoadUserDBData = async () => {
     try {
         
         //Load test user
-        const username = 'me';
-        const password = 'me';
+        const username = 'user';
+        const password = 'password';
 
         const user = await userSchema.create(
             {

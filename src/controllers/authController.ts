@@ -95,7 +95,7 @@ export const loginUser = async (req: Request, res: Response) => {
         };
 
         // Generate JWT
-        const token = jwt.sign({ userId: user._id }, JWT_SECRET, { expiresIn: '1h' });
+        const token = jwt.sign({ userId: user._id}, JWT_SECRET, { expiresIn: '1h' });
         res.cookie("token", token, COOKIE_OPTIONS);
         console.log("User was successfully authenticated using JWT");
         res.status(200).json({ 
@@ -114,17 +114,24 @@ export const logoutUser = (req: Request, res: Response) => {
     res.status(200).json({ message: "Logged out successfully!" });
 };
 
-export const authCheck = (req: Request, res: Response) => {
+interface JwtPayloadWithUser extends jwt.JwtPayload {
+    userId: string;
+}  
+
+export const authCheck = async (req: Request, res: Response) => {
     
-    const token = req.cookies.token; // Leer JWT desde la cookie HTTP-only
-    console.log(`TOken: ${token}`);
+    const token = req.cookies.token; 
     
     if (!token) res.status(401).json({ message: 'No autenticado' });
 
     try {
-        const user = jwt.verify(token, JWT_SECRET);
-        res.status(200).json({ message: 'Autenticado', user });
+        const decoded = jwt.verify(token, JWT_SECRET) as JwtPayloadWithUser;
+        const user = await User.findById(decoded.userId).select("username email");
+
+        if (!user) res.status(404).json({ message: 'User not found' });
+
+        res.status(200).json({ message: 'Authenticated', user: user });
     } catch (error) {
-        res.status(401).json({ message: 'Token inválido' });
+        res.status(401).json({ message: 'Invalid token' });
     }
 };
