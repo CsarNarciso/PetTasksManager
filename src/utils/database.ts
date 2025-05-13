@@ -1,4 +1,6 @@
 import mongoose from 'mongoose';
+import userSchema from '../schemas/userSchema';
+import bcrypt from 'bcrypt';
 
 // Get mongodb from .env file or specified explicity
 const dbHost = 'localhost';
@@ -30,3 +32,24 @@ export const cleanDB = async () => {
         process.exit(1);
     }
 }
+
+export const preLoadUserDBData = async () => {
+    try {
+        
+        //Load test user
+        const username = 'me';
+        const password = 'me';
+
+        const user = await userSchema.create(
+            {
+                username, 
+                email:`${username}@gmail.com`, 
+                password: await bcrypt.hash(password, 10), 
+            }); 
+        console.log(`Test user pre-loaded on DB: '${username}' with password '${password}'`);
+
+    } catch (error) {
+        console.error(`Error while preloading user data on DB: ${error}`);
+        process.exit(1);
+    }
+} 
