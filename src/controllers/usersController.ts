@@ -1,6 +1,27 @@
 import { Request, Response} from 'express';
 import bcrypt from 'bcrypt';
+import jwt from 'jsonwebtoken';
 import userSchema from '../schemas/userSchema';
+
+require('dotenv').config();
+const JWT_SECRET = process.env.JWT_SECRET as string;
+
+
+
+export const fetchAuthUserData = async (req: Request, res: Response) => {
+    const token = req.cookies.token; 
+    console.log(`Token: ${token}`);
+    
+    if (!token) res.status(401).json({ message: 'Not authenticated' });
+
+    try {
+        const user = jwt.verify(token, JWT_SECRET);
+        console.log("User data:", user);
+        res.status(200).json({ data: user });
+    } catch (error) {
+        res.status(401).json({ message: 'Invalid token' });
+    }
+}
 
 export const fetchUserByUsername = async (req: Request, res: Response) => {
     
