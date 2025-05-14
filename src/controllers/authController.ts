@@ -38,7 +38,7 @@ export const registerUser = async (req: Request, res: Response) => {
 
         // Generate and sent JWT via cookie
         
-        const token = jwt.sign({ userId: createdUser._id }, JWT_SECRET, { expiresIn: '1h' });
+        const token = jwt.sign({ userId: createdUser._id }, JWT_SECRET, { expiresIn: '15m' });
         res.cookie("token", token, COOKIE_OPTIONS);
         console.log("Token generated");
 
@@ -95,7 +95,7 @@ export const loginUser = async (req: Request, res: Response) => {
         };
 
         // Generate JWT
-        const token = jwt.sign({ userId: user._id}, JWT_SECRET, { expiresIn: '1h' });
+        const token = jwt.sign({ userId: user._id}, JWT_SECRET, { expiresIn: '15m' });
         res.cookie("token", token, COOKIE_OPTIONS);
         console.log("User was successfully authenticated using JWT");
         res.status(200).json({ 
