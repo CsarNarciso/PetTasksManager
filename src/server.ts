@@ -4,7 +4,7 @@ import cors from 'cors';
 import authRouter from './routes/authRouter';
 import usersRouter from './routes/usersRouter';
 import tasksRouter from './routes/tasksRouter';
-import {connectDB, cleanDB, preLoadUserDBData} from './utils/database';
+import {connectDB, cleanDB, preLoadUserDBData, preLoadTasksDBData} from './utils/database';
 import cookieParser from 'cookie-parser';
 
 // API settings
@@ -26,6 +26,9 @@ cleanDB();
 
 //Pre-load test user on DB
 preLoadUserDBData();
+
+// Pre-load test tasks on DB
+preLoadTasksDBData();
 
 
 // Base Endpoints 
