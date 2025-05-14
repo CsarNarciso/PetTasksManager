@@ -83,6 +83,12 @@ export const preLoadTasksDBData = async () => {
             userId:defaultUser._id
         });
 
+        await taskSchema.create({
+            name:"DO my homework task", 
+            isCompleted:false, 
+            userId:defaultUser._id
+        });
+
         console.log("Preload tasks were created");
 
     } catch (error) {
