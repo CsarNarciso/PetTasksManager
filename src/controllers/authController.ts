@@ -126,7 +126,7 @@ export const authCheck = async (req: Request, res: Response) => {
 
     try {
         const decoded = jwt.verify(token, JWT_SECRET) as JwtPayloadWithUser;
-        const user = await User.findById(decoded.userId).select("username email");
+        const user = await User.findById(decoded.userId).select("id username email");
 
         if (!user) res.status(404).json({ message: 'User not found' });
 

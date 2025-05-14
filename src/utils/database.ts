@@ -1,5 +1,6 @@
 import mongoose from 'mongoose';
 import userSchema from '../schemas/userSchema';
+import taskSchema from '../schemas/taskSchema';
 import bcrypt from 'bcrypt';
 
 // Get mongodb from .env file or specified explicity
@@ -50,6 +51,48 @@ export const preLoadUserDBData = async () => {
 
     } catch (error) {
         console.error(`Error while preloading user data on DB: ${error}`);
+        process.exit(1);
+    }
+} 
+
+// Delay async func execution
+const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
+export const preLoadTasksDBData = async () => {
+    await delay(3000);
+
+    try {
+        // Get default user
+        const defaultUser = await userSchema.findOne({"username":"user"})
+
+        if (!defaultUser) {
+            console.error("Default user not found.");
+            return;
+        }
+
+        // Create preload tasks
+        await taskSchema.create({
+            name:"First task", 
+            isCompleted:false, 
+            userId:defaultUser._id
+        });
+
+        await taskSchema.create({
+            name:"Second task", 
+            isCompleted:false, 
+            userId:defaultUser._id
+        });
+
+        await taskSchema.create({
+            name:"DO my homework task", 
+            isCompleted:false, 
+            userId:defaultUser._id
+        });
+
+        console.log("Preload tasks were created");
+
+    } catch (error) {
+        console.error("Error while preloading tasks on DB");
         process.exit(1);
     }
 } 

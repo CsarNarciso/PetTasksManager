@@ -49,10 +49,11 @@ export const listTasksByUserId = async (req: Request, res: Response) => {
     const userId = req.query.userId;
 
 	try {
-        const tasks = await Task.find({userId:userId});
+        const tasks = await Task.find({userId});
 
-        if (!tasks) {
-    		res.status(404).json({ message: 'No tasks linked to this user found'});
+        if (!tasks || tasks.length === 0) {
+    	    res.status(404).json({ message: 'No tasks linked to this user found'});
+            return;
         }
 
 		res.status(200).json({ message: 'Here are your tasks...', tasks});
