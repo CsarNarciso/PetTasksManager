@@ -122,16 +122,25 @@ export const authCheck = async (req: Request, res: Response) => {
     
     const token = req.cookies.token; 
     
-    if (!token) res.status(401).json({ message: 'No autenticado' });
+    if (!token) { 
+        console.log("No authenticated!"); 
+        res.status(401).json({ message: 'No autenticado' });
+        return; 
+    };
 
     try {
         const decoded = jwt.verify(token, JWT_SECRET) as JwtPayloadWithUser;
         const user = await User.findById(decoded.userId).select("id username email");
 
-        if (!user) res.status(404).json({ message: 'User not found' });
+        if (!user){
+            res.status(404).json({ message: 'User not found' });
+            return;
+        }
 
         res.status(200).json({ message: 'Authenticated', user: user });
+        return;
     } catch (error) {
         res.status(401).json({ message: 'Invalid token' });
+        return;
     }
 };
