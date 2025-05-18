@@ -88,3 +88,19 @@ export const getCompletedTasksCounterByUserId = async (req: Request, res: Respon
         res.status(500).json({ message: 'internal server error', error });
     }
 }
+
+export const getUncompletedTasksCounterByUserId = async (req: Request, res: Response) => {
+    try {
+
+        const userId = req.query.userId;
+
+        //Fetch-filter from DB
+        const uncompletedTasks = await Task.find({userId, "isCompleted": false});
+        const counter = uncompletedTasks.length;
+
+        res.json({ message: 'Uncompleted tasks successfully fetched!', counter });
+
+    } catch (error) {
+        res.status(500).json({ message: 'internal server error', error });
+    }
+}
