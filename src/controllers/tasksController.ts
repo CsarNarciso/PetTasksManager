@@ -71,3 +71,20 @@ export const listAllTasks = async (req: Request, res: Response) => {
         res.status(500).json({ message: 'Internal server error', error });
     }
 }
+
+// GET 
+export const getCompletedTasksCounterByUserId = async (req: Request, res: Response) => {
+    try {
+
+        const userId = req.query.userId;
+
+        //Fetch-filter from DB
+        const completedTasks = await Task.find({userId, "isCompleted": true});
+        const counter = completedTasks.length;
+
+        res.json({ message: 'Completed tasks successfully fetched!', counter });
+
+    } catch (error) {
+        res.status(500).json({ message: 'internal server error', error });
+    }
+}
