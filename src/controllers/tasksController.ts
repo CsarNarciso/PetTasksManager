@@ -45,11 +45,11 @@ export const deleteTask = async (req: Request, res: Response) => {
 }
 
 // GET
-export const fetchUncompletedTasksByUserId = async (req: Request, res: Response) => {
+export const fetchTasksByUserId = async (req: Request, res: Response) => {
     const userId = req.query.userId;
 
 	try {
-        const tasks = await Task.find({userId, "isCompleted":false});
+        const tasks = await Task.find({userId});
 
         if (!tasks || tasks.length === 0) {
     	    res.status(404).json({ message: 'No tasks linked to this user found'});
