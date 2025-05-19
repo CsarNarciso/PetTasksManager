@@ -59,8 +59,8 @@ export const fetchTasksByUserId = async (req: Request, res: Response) => {
             return;
         }
 
-        const completedCount = tasks.filter(task => task.isCompleted);
-        const uncompletedCount = tasks.filter(task => !task.isCompleted);
+        const completedCount = tasks.filter(task => task.isCompleted).length;
+        const uncompletedCount = tasks.filter(task => !task.isCompleted).length;
 
 		res.status(200).json(
             { 
