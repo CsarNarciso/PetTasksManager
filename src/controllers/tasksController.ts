@@ -56,7 +56,16 @@ export const fetchTasksByUserId = async (req: Request, res: Response) => {
             return;
         }
 
-		res.status(200).json({ message: 'Here are your tasks...', tasks});
+        const completedCount = tasks.filter(task => task.isCompleted);
+        const uncompletedCount = tasks.filter(task => !task.isCompleted);
+
+		res.status(200).json(
+            { 
+                message: 'Here are your tasks...',
+                tasks,
+                completedCount: completedCount,
+                uncompletedCount: uncompletedCount
+            });
     } catch (error) {
         res.status(500).json({ message: 'Internal server error', error });
     }
