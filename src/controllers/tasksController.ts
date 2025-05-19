@@ -46,6 +46,9 @@ export const deleteTask = async (req: Request, res: Response) => {
 
 // GET
 export const fetchTasksByUserId = async (req: Request, res: Response) => {
+    /*
+        Fetch all tasks by userId and retrieve completed and uncompleted tasks count.
+    */
     const userId = req.query.userId;
 
 	try {
@@ -78,38 +81,5 @@ export const listAllTasks = async (req: Request, res: Response) => {
         res.json({ message: 'Here are all tasks...', tasks});
     } catch (error) {
         res.status(500).json({ message: 'Internal server error', error });
-    }
-}
-
-// GET 
-export const getCompletedTasksCounterByUserId = async (req: Request, res: Response) => {
-    try {
-
-        const userId = req.query.userId;
-
-        //Fetch-filter from DB
-        const completedTasks = await Task.find({userId, "isCompleted": true});
-        const counter = completedTasks.length;
-
-        res.json({ message: 'Completed tasks successfully fetched!', counter });
-
-    } catch (error) {
-        res.status(500).json({ message: 'internal server error', error });
-    }
-}
-
-export const getUncompletedTasksCounterByUserId = async (req: Request, res: Response) => {
-    try {
-
-        const userId = req.query.userId;
-
-        //Fetch-filter from DB
-        const uncompletedTasks = await Task.find({userId, "isCompleted": false});
-        const counter = uncompletedTasks.length;
-
-        res.json({ message: 'Uncompleted tasks successfully fetched!', counter });
-
-    } catch (error) {
-        res.status(500).json({ message: 'internal server error', error });
     }
 }
