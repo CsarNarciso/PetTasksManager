@@ -72,20 +72,26 @@ export const preLoadTasksDBData = async () => {
 
         // Create preload tasks
         await taskSchema.create({
-            name:"First task", 
+            name:"Task 1", 
             isCompleted:false, 
             userId:defaultUser._id
         });
 
         await taskSchema.create({
-            name:"Second task", 
+            name:"Task 2", 
             isCompleted:false, 
             userId:defaultUser._id
         });
 
         await taskSchema.create({
-            name:"DO my homework task", 
-            isCompleted:false, 
+            name:"Task 3", 
+            isCompleted:true, 
+            userId:defaultUser._id
+        });
+
+        await taskSchema.create({
+            name:"Task 4", 
+            isCompleted:true, 
             userId:defaultUser._id
         });
 
