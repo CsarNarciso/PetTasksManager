@@ -20,6 +20,9 @@ interface JwtPayloadWithUser extends jwt.JwtPayload {
 const ACCESS_SECRET = process.env.ACCESS_TOKEN_SECRET as string;
 const REFRESH_SECRET = process.env.REFRESH_TOKEN_SECRET as string;
 
+const ACCESS_EXPIRES_IN = process.env.ACCESS_TOKEN_EXPIRES_IN as any;
+const REFRESH_EXPIRES_IN = process.env.REFRESH_TOKEN_EXPIRES_IN as any;
+
 
 export const registerUser = async (req: Request, res: Response) => {
     try {
@@ -42,11 +45,11 @@ export const registerUser = async (req: Request, res: Response) => {
         });
 
         // Generate refresh token in cookie
-        const refreshToken = jwt.sign({ userId: createdUser._id }, REFRESH_SECRET, {expiresIn: '1d'});
+        const refreshToken = jwt.sign({ userId: createdUser._id }, REFRESH_SECRET, {expiresIn: REFRESH_EXPIRES_IN});
         res.cookie("refresh", refreshToken, COOKIE_OPTIONS);
 
         //Generate access token
-        const token = jwt.sign({ userId: createdUser._id }, ACCESS_SECRET, { expiresIn: '15m' });
+        const token = jwt.sign({ userId: createdUser._id }, ACCESS_SECRET, { expiresIn: ACCESS_EXPIRES_IN });
 
         const userDTO = {
             id: createdUser._id,
@@ -101,11 +104,11 @@ export const loginUser = async (req: Request, res: Response) => {
         };
 
         //Generate refresh token (in cookie)
-        const refreshToken = jwt.sign({ userId: user._id }, ACCESS_SECRET, { expiresIn: '1d' });
+        const refreshToken = jwt.sign({ userId: user._id }, REFRESH_SECRET, { expiresIn: REFRESH_EXPIRES_IN });
         res.cookie("refresh", refreshToken, COOKIE_OPTIONS);
 
         // Generate access token
-        const token = jwt.sign({ userId: user._id}, ACCESS_SECRET, { expiresIn: '15m' });
+        const token = jwt.sign({ userId: user._id}, ACCESS_SECRET, { expiresIn: ACCESS_EXPIRES_IN });
         
         console.log("User was successfully authenticated");
         
@@ -127,7 +130,7 @@ export const loginUser = async (req: Request, res: Response) => {
 export const refresh = async (req: Request, res: Response) => {
 
     const refreshToken = req.cookies?.refresh;
-    console.log("ffffffffffffffffffffff: ", refreshToken);
+    
     if(!refreshToken) {
         res.status(401).json({message: "missing token"});
         return;
@@ -135,16 +138,16 @@ export const refresh = async (req: Request, res: Response) => {
 
     try {
         
-        const decoded = jwt.verify(refreshToken, REFRESH_SECRET, COOKIE_OPTIONS) as JwtPayloadWithUser;
-        const foundUser = await User.findOne(decoded._id).select("id username email");
+        const decoded = jwt.verify(refreshToken, REFRESH_SECRET) as JwtPayloadWithUser;
+        const foundUser = await User.findOne(decoded._id).select("id");
 
         if(!foundUser) {
-            res.status(401); 
+            res.status(401).json({message: "user not found"});
             return;
         }
 
         //Generate new access token
-        const newAccessToken = jwt.sign({ userId: foundUser.id }, ACCESS_SECRET, { expiresIn: '15m' });
+        const newAccessToken = jwt.sign({ userId: foundUser.id }, ACCESS_SECRET, { expiresIn: ACCESS_EXPIRES_IN });
         res.status(200).json({token: newAccessToken});
         return;
 
