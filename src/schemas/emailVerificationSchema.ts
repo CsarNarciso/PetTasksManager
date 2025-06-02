@@ -9,5 +9,8 @@ export const emailVerificationSchema = new Schema({
         type: String,
         required: true
     },
-    createdAt: { type: Date, default: Date.now, expires: 600} // Delete email verification code after 10 minutes
+    createdAt: { 
+        type: Date, 
+        default: Date.now, 
+        expires: 600} // Delete email verification code after 10 minutes
 })
