@@ -4,7 +4,7 @@ import jwt from 'jsonwebtoken';
 import userService from '../services/userService';
 import User from '../schemas/userSchema';
 import { userCreationSchema, loginSchema } from "../schemas/authSchema";
-import { z } from 'zod';
+import { sendVerificationCodeEmail } from '../utils/emailVerification';
 
 import COOKIE_OPTIONS from '../utils/cookieOptions';
 
@@ -27,7 +27,7 @@ export const registerUser = async (req: Request, res: Response) => {
             return;
         }
 
-        //Create new user
+        // Create new user
         const hashedPassword = await bcrypt.hash(data.password, 10);
         const createdUser = await User.create({
             username: data.username,
@@ -37,12 +37,13 @@ export const registerUser = async (req: Request, res: Response) => {
         console.log("User created!");
 
         // Generate and sent JWT via cookie
-        
         const token = jwt.sign({ userId: createdUser._id }, JWT_SECRET, { expiresIn: '15m' });
         res.cookie("token", token, COOKIE_OPTIONS);
         console.log("Token generated");
 
         console.log("Cookie with JWT set successfully");
+
+        sendVerificationCodeEmail({userEmail:data.email});
 
         const userDTO = {
             id: createdUser._id,

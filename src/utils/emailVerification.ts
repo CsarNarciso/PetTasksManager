@@ -3,6 +3,8 @@ import { connectDB } from "./database";
 import { ObjectId, Promise } from "mongoose";
 import emailVerificationSchema from "../schemas/emailVerificationSchema";
 
+// Enable enviroment variables
+require('dotenv').config();
 
 // Types
 interface EmailVerificationProps {
@@ -32,6 +34,7 @@ export const sendVerificationCodeEmail = async ({userEmail}:EmailVerificationPro
       },
     });
   
+    // Send email with verification code to the user
     await transporter.sendMail({
       from: process.env.GMAIL_USER,
       to: userEmail,
