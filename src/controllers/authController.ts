@@ -3,6 +3,7 @@ import bcrypt from 'bcrypt'; // Used to hash password while saving or retrieving
 import jwt from 'jsonwebtoken';
 import userService from '../services/userService';
 import User from '../schemas/userSchema';
+import EmailVerification from "../schemas/emailVerificationSchema";
 import { userCreationSchema, loginSchema } from "../schemas/authSchema";
 import { sendVerificationCodeEmail } from '../utils/emailVerification';
 
@@ -120,13 +121,14 @@ interface JwtPayloadWithUser extends jwt.JwtPayload {
     userId: string;
 }  
 
+// POST: Check for authenticated user
 export const authCheck = async (req: Request, res: Response) => {
     
     const token = req.cookies.token; 
     
     if (!token) { 
         console.log("No authenticated!"); 
-        res.status(401).json({ message: 'No autenticado' });
+        res.status(401).json({ message: 'No autenticathed' });
         return; 
     };
 
@@ -143,6 +145,50 @@ export const authCheck = async (req: Request, res: Response) => {
         return;
     } catch (error) {
         res.status(401).json({ message: 'Invalid token' });
+        return;
+    }
+};
+
+// POST: Email verification
+export const verifyEmail = async (req:Request, res:Response) => {
+    // Get request cookies token
+    const token = req.cookies.token;
+    if (!token) {
+        res.status(401).json({ message: "No authenticated" });
+        return;
+    }
+
+    try {
+        // User auth check
+        const decoded = jwt.verify(token, JWT_SECRET) as JwtPayloadWithUser;
+        const user = await User.findById(decoded.userId).select("id username email");
+        if (!user) {
+            res.status(404).json({ message: "User not found" });
+            return;
+        }
+
+        // Data
+        const userEmail = user.email;
+        const { code } = req.body;
+        if (!userEmail || !code) return res.status(400).json({ message: "Missing data" });
+    
+        // Code verification
+        const verificationCode = await EmailVerification.find({email:userEmail, code:code});
+        if (!verificationCode) {
+            res.status(400).json({ message: "Invalid code" });
+            return;
+        }
+
+        // Update user
+        await User.updateOne({ _id: user._id }, {isEmailVerified:true});
+
+        // Delete verification code
+        await EmailVerification.deleteOne({ email: userEmail });
+
+        res.status(200).json({ message: "Email verified successfully" });
+        return;
+    } catch (error) {
+        res.status(401).json({ message: "Invalid token" });
         return;
     }
 };

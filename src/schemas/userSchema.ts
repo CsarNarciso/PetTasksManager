@@ -30,7 +30,7 @@ const userSchema = new Schema({
         enum: ["Free", "Basic", "Pro"], 
         default:"Free"
     },    
-    isEmailValid: {
+    isEmailVerified: {
         type:Boolean,
         required:true,
         default:false
