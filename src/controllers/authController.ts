@@ -170,8 +170,11 @@ export const verifyEmail = async (req:Request, res:Response) => {
         // Data
         const userEmail = user.email;
         const { code } = req.body;
-        if (!userEmail || !code) return res.status(400).json({ message: "Missing data" });
-    
+        if (!userEmail || !code) { 
+            res.status(400).json({ message: "Missing data" });
+            return;
+        }
+
         // Code verification
         const verificationCode = await EmailVerification.find({email:userEmail, code:code});
         if (!verificationCode) {
