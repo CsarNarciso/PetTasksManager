@@ -30,6 +30,11 @@ const userSchema = new Schema({
         enum: ["Free", "Basic", "Pro"], 
         default:"Free"
     },    
+    isEmailValid: {
+        type:Boolean,
+        required:true,
+        default:false
+    },
     createdAt: { type:Date, default:Date.now }
 });
 
