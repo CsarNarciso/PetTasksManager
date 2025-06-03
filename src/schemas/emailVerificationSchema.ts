@@ -1,6 +1,6 @@
 import { Schema, model } from "mongoose";
 
-export const emailVerificationSchema = new Schema({
+const emailVerificationSchema = new Schema({
     email: { 
         type: String, 
         required: true 
@@ -14,3 +14,5 @@ export const emailVerificationSchema = new Schema({
         default: Date.now, 
         expires: 600} // Delete email verification code after 10 minutes
 })
+
+export default model('EmailVerification', emailVerificationSchema);
