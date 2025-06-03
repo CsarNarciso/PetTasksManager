@@ -1,6 +1,5 @@
 import nodemailer from "nodemailer";
 import { connectDB } from "./database";
-import { ObjectId, Promise } from "mongoose";
 import emailVerificationSchema from "../schemas/emailVerificationSchema";
 
 // Enable enviroment variables
@@ -8,11 +7,11 @@ require('dotenv').config();
 
 // Types
 interface EmailVerificationProps {
-    userEmail: string;
+    email: string;
 }
 
 // Send email verification code to email
-export const sendVerificationCodeEmail = async ({userEmail}:EmailVerificationProps) => {
+export const sendVerificationCodeEmail = async ({email}:EmailVerificationProps) => {
     // Connect to db
     await connectDB()  
 
@@ -21,7 +20,7 @@ export const sendVerificationCodeEmail = async ({userEmail}:EmailVerificationPro
   
     // Save email verification code to database
     await emailVerificationSchema.create({
-        userEmail,
+        email,
         code
     })
   
@@ -37,7 +36,7 @@ export const sendVerificationCodeEmail = async ({userEmail}:EmailVerificationPro
     // Send email with verification code to the user
     await transporter.sendMail({
       from: process.env.GMAIL_USER,
-      to: userEmail,
+      to: email,
       subject: "Your Verification Code",
       text: `Use this code to verify your email: ${code}\nGo back to the website on http://localhost:3000/auth/emailverification and enter the verification code to continue.`,
     });
