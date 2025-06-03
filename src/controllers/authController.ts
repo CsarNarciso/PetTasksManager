@@ -43,6 +43,7 @@ export const registerUser = async (req: Request, res: Response) => {
 
         console.log("Cookie with JWT set successfully");
 
+        // Send verification code via email after successful user registration
         sendVerificationCodeEmail({userEmail:data.email});
 
         const userDTO = {
