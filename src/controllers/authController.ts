@@ -220,7 +220,7 @@ export const verifyEmail = async (req:Request, res:Response) => {
         }
 
         // Code verification
-        const verificationCode = await EmailVerification.find({email:userEmail, code:code});
+        const verificationCode = await EmailVerification.findOne({email:userEmail, code:code});
         if (!verificationCode) {
             console.log("Verification code not found/invalid");
             res.status(400).json({ message: "Invalid code" });
@@ -239,6 +239,45 @@ export const verifyEmail = async (req:Request, res:Response) => {
         return;
     } catch (error) {
         console.log("Failed to verify email", error);
+        res.status(401).json({ message: "Unexpected error", error: error });
+        return;
+    }
+};
+
+// POST: Check is email verified
+export const checkIsEmailVerified = async (req:Request, res:Response) => {
+    // Get request cookies token
+    const token = req.cookies.token;
+    if (!token) {
+        console.log("User is not authenticated");
+        res.status(401).json({ message: "No authenticated" });
+        return;
+    }
+
+    try {
+        // User auth check
+        const decoded = jwt.verify(token, JWT_SECRET) as JwtPayloadWithUser;
+        const user = await User.findById(decoded.userId).select("id username email");
+        if (!user) {
+            res.status(404).json({ message: "User not found" });
+            console.log("User not found");
+            return;
+        }
+
+        // User data
+        const isEmailVerified = user.isEmailVerified;
+        if (!isEmailVerified) { 
+            console.log("Missing data (isEmailVerified) or email is not verified yet");
+            res.status(400).json({ message: "Missing data (isEmailVerified) | not verified email" });
+            return;
+        }
+        
+        console.log("Email is already verified");
+        res.status(200).json({ message: "Email is already verified!" });
+        return;
+
+    } catch (error) {
+        console.log("Unexpected error", error);
         res.status(401).json({ message: "Unexpected error", error: error });
         return;
     }
