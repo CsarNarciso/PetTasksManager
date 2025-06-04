@@ -154,6 +154,7 @@ export const verifyEmail = async (req:Request, res:Response) => {
     // Get request cookies token
     const token = req.cookies.token;
     if (!token) {
+        console.log("User is not authenticated");
         res.status(401).json({ message: "No authenticated" });
         return;
     }
@@ -164,6 +165,7 @@ export const verifyEmail = async (req:Request, res:Response) => {
         const user = await User.findById(decoded.userId).select("id username email");
         if (!user) {
             res.status(404).json({ message: "User not found" });
+            console.log("User not found");
             return;
         }
 
@@ -171,6 +173,7 @@ export const verifyEmail = async (req:Request, res:Response) => {
         const userEmail = user.email;
         const { code } = req.body;
         if (!userEmail || !code) { 
+            console.log("Missing data (code)");
             res.status(400).json({ message: "Missing data" });
             return;
         }
@@ -178,20 +181,24 @@ export const verifyEmail = async (req:Request, res:Response) => {
         // Code verification
         const verificationCode = await EmailVerification.find({email:userEmail, code:code});
         if (!verificationCode) {
+            console.log("Verification code not found/invalid");
             res.status(400).json({ message: "Invalid code" });
             return;
         }
 
         // Update user
         await User.updateOne({ _id: user._id }, {isEmailVerified:true});
+        console.log("Updated user (isEmailVerified:true)");
 
         // Delete verification code
         await EmailVerification.deleteOne({ email: userEmail });
 
+        console.log("Email verified successfully");
         res.status(200).json({ message: "Email verified successfully" });
         return;
     } catch (error) {
-        res.status(401).json({ message: "Invalid token" });
+        console.log("Failed to verify email", error);
+        res.status(401).json({ message: "Unexpected error", error: error });
         return;
     }
 };
