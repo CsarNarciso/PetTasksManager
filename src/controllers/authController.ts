@@ -149,6 +149,47 @@ export const authCheck = async (req: Request, res: Response) => {
     }
 };
 
+// POST: Send email verification code
+export const sendEmailVerificationCode = async (req:Request, res:Response) => {
+    // Get request cookies token
+    const token = req.cookies.token;
+    if (!token) {
+        console.log("User is not authenticated");
+        res.status(401).json({ message: "No authenticated" });
+        return;
+    }
+
+    try {
+        const decoded = jwt.verify(token, JWT_SECRET) as JwtPayloadWithUser;
+        const user = await User.findById(decoded.userId).select("id username email");
+        if (!user) {
+            res.status(404).json({ message: "User not found" });
+            console.log("User not found");
+            return;
+        }
+
+        // Get email adres
+        const userEmail = user.email;
+        if (!userEmail) { 
+            console.log("Email not found");
+            res.status(400).json({ message: "Missing email" });
+            return;
+        }
+
+        try {
+            sendVerificationCodeEmail({email:userEmail});
+        } catch (error) {
+            console.log("Failed to send email verification code", error);
+            res.status(401).json({ message: "Failed to send email verification code", error: error });
+            return;
+        }
+    } catch (error) {
+        console.log("Unexpected error", error);
+        res.status(401).json({ message: "Unexpected error", error: error });
+        return;
+    }
+};
+
 // POST: Email verification
 export const verifyEmail = async (req:Request, res:Response) => {
     // Get request cookies token

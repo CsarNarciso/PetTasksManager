@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { registerUser, loginUser, logoutUser, authCheck, verifyEmail } from '../controllers/authController';
+import { registerUser, loginUser, logoutUser, authCheck, verifyEmail, sendEmailVerificationCode } from '../controllers/authController';
 
 const authRouter = Router();
 
@@ -8,5 +8,6 @@ authRouter.post('/login', loginUser);
 authRouter.post('/logout', logoutUser);
 authRouter.get('/check', authCheck);
 authRouter.post('/verifyEmail', verifyEmail);
+authRouter.post('/sendEmailVerificationCode', sendEmailVerificationCode);
 
 export default authRouter;
