@@ -35,7 +35,9 @@ const userSchema = new Schema({
         required:true,
         default:false
     },
-    createdAt: { type:Date, default:Date.now }
+    createdAt: { type:Date, default:Date.now },
+    
+    refreshToken: {type:String}
 });
 
 export default model('User', userSchema);
