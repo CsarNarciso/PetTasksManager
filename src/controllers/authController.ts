@@ -23,6 +23,12 @@ const REFRESH_SECRET = process.env.REFRESH_TOKEN_SECRET as string;
 const ACCESS_EXPIRES_IN = process.env.ACCESS_TOKEN_EXPIRES_IN as any;
 const REFRESH_EXPIRES_IN = process.env.REFRESH_TOKEN_EXPIRES_IN as any;
 
+const ACCESS_COOKIE_NAME = process.env.ACCESS_TOKEN_COOKIE_NAME as string;
+const REFRESH_COOKIE_NAME = process.env.REFRESH_TOKEN_COOKIE_NAME as string;
+
+const TOKEN_EXPIRED_ERROR = process.env.TOKEN_EXPIRED_ERROR as string;
+
+
 
 export const registerUser = async (req: Request, res: Response) => {
     try {
@@ -44,12 +50,13 @@ export const registerUser = async (req: Request, res: Response) => {
             password: hashedPassword
         });
 
-        // Generate refresh token in cookie
-        const refreshToken = jwt.sign({ userId: createdUser._id }, REFRESH_SECRET, {expiresIn: REFRESH_EXPIRES_IN});
-        res.cookie("refresh", refreshToken, COOKIE_OPTIONS);
+        //Generate refresh token
+        const refreshToken = jwt.sign({ userId: createdUser._id }, REFRESH_SECRET, { expiresIn: REFRESH_EXPIRES_IN });
+        res.cookie(REFRESH_COOKIE_NAME, refreshToken, COOKIE_OPTIONS);
 
-        //Generate access token
-        const token = jwt.sign({ userId: createdUser._id }, ACCESS_SECRET, { expiresIn: ACCESS_EXPIRES_IN });
+        // Generate access token (both in cookies)
+        const token = jwt.sign({ userId: createdUser._id}, ACCESS_SECRET, { expiresIn: ACCESS_EXPIRES_IN });
+        res.cookie(ACCESS_COOKIE_NAME, token, COOKIE_OPTIONS);
 
         const userDTO = {
             id: createdUser._id,
@@ -59,8 +66,7 @@ export const registerUser = async (req: Request, res: Response) => {
 
         res.status(201).json({ 
             message: 'User registered successfully',
-            user: userDTO,
-            token: token
+            user: userDTO
         });
 
     } catch (error) {
@@ -96,31 +102,50 @@ export const loginUser = async (req: Request, res: Response) => {
             return;
         }
 
-        // User DTO for response (without exposing delicate data)
-        const userDTO = {
-            id: user._id,
-            username: user.username,
-            email: user.email
-        };
-
-        //Generate refresh token (in cookie)
+        //Generate refresh token
         const refreshToken = jwt.sign({ userId: user._id }, REFRESH_SECRET, { expiresIn: REFRESH_EXPIRES_IN });
-        res.cookie("refresh", refreshToken, COOKIE_OPTIONS);
+        res.cookie(REFRESH_COOKIE_NAME, refreshToken, COOKIE_OPTIONS);
 
-        // Generate access token
+        // Generate access token (both in cookies)
         const token = jwt.sign({ userId: user._id}, ACCESS_SECRET, { expiresIn: ACCESS_EXPIRES_IN });
-        
-        console.log("User was successfully authenticated");
-        
+        res.cookie(ACCESS_COOKIE_NAME, token, COOKIE_OPTIONS);
+
         res.status(200).json({ 
-            message: 'Successfully authenticated', 
-            user: userDTO,
-            token: token
+            message: 'Successfully authenticated'
         });
         return;
         
     } catch (error) {
         res.status(500).json({ message: 'Login failed', error });
+        return;
+    }
+};
+
+
+
+export const authCheck = async (req: Request, res: Response) => {
+    
+    const accessToken = req.cookies?.token;
+    
+    if (!accessToken) { 
+        res.status(401).json({ message: 'Missing token' });
+        return; 
+    };
+
+    try {
+        const decoded = jwt.verify(accessToken, ACCESS_SECRET) as JwtPayloadWithUser;
+        const user = await User.findById(decoded.userId).select("id username email");
+
+        if (!user){
+            res.status(401).json({ message: 'User not found' });
+            return;
+        }
+
+        res.status(200).json({ message: 'Authenticated', user });
+        return;
+
+    } catch (error) {
+        res.status(401).json({ error: TOKEN_EXPIRED_ERROR, message: 'Invalid token' });
         return;
     }
 };
@@ -148,7 +173,8 @@ export const refresh = async (req: Request, res: Response) => {
 
         //Generate new access token
         const newAccessToken = jwt.sign({ userId: foundUser.id }, ACCESS_SECRET, { expiresIn: ACCESS_EXPIRES_IN });
-        res.status(200).json({token: newAccessToken});
+        res.cookie(ACCESS_COOKIE_NAME, newAccessToken, COOKIE_OPTIONS);
+        res.status(200).json({message:"New access token issued"});
         return;
 
     } catch (err) {
@@ -160,36 +186,7 @@ export const refresh = async (req: Request, res: Response) => {
 
 
 export const logoutUser = (req: Request, res: Response) => {
-    res.clearCookie("refresh", { httpOnly: true, sameSite: "strict", secure: true });
+    res.clearCookie(ACCESS_COOKIE_NAME, { httpOnly: true, sameSite: "strict", secure: true });
+    res.clearCookie(REFRESH_COOKIE_NAME, { httpOnly: true, sameSite: "strict", secure: true });
     res.status(200).json({ message: "Logged out successfully!" });
-};
-
-
-
-
-export const authCheck = async (req: Request, res: Response) => {
-    
-    const accessToken = req.headers.authorization;
-    
-    if (!accessToken) { 
-        res.status(401); //missing token, but for security reasons dont give details!
-        return; 
-    };
-
-    try {
-        const decoded = jwt.verify(accessToken, ACCESS_SECRET) as JwtPayloadWithUser;
-        const user = await User.findById(decoded.userId).select("id username email");
-
-        if (!user){
-            res.status(401); //user not found
-            return;
-        }
-
-        res.status(200).json({ message: 'Authenticated', user });
-        return;
-
-    } catch (error) {
-        res.status(401).json({ message: 'Invalid token' });
-        return;
-    }
 };
