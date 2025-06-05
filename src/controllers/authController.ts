@@ -34,6 +34,7 @@ const TOKEN_EXPIRED_ERROR = process.env.TOKEN_EXPIRED_ERROR as string;
 export const registerUser = async (req: Request, res: Response) => {
     try {
         const data = userCreationSchema.parse(req.body);
+        console.log("Register: Got data from body");
 
         //If user already exists...
         const existingUser = await userService.findByEmail(data.email);
@@ -42,6 +43,8 @@ export const registerUser = async (req: Request, res: Response) => {
             res.status(400).json({ message: 'User already exists' });
             return;
         }
+        console.log("Register: User is not in existance");
+
 
         // Create new user
         const hashedPassword = await bcrypt.hash(data.password, 10);
@@ -50,22 +53,27 @@ export const registerUser = async (req: Request, res: Response) => {
             email: data.email,
             password: hashedPassword
         });
+        console.log("Register: Created user");
 
         //Generate refresh token
         const refreshToken = jwt.sign({ userId: createdUser._id }, REFRESH_SECRET, { expiresIn: REFRESH_EXPIRES_IN });
         res.cookie(REFRESH_COOKIE_NAME, refreshToken, COOKIE_OPTIONS);
+        console.log("Register: Got refresh token");
 
         // Generate access token (both in cookies)
         const token = jwt.sign({ userId: createdUser._id}, ACCESS_SECRET, { expiresIn: ACCESS_EXPIRES_IN });
         res.cookie(ACCESS_COOKIE_NAME, token, COOKIE_OPTIONS);
+        console.log("Register: Got access token");
 
         //Update refresh token for user in DB
         await User.findOneAndUpdate(createdUser._id, 
             { $set: { refreshToken: refreshToken } }
         );
+        console.log("Register: Updated refresh token");
 
-        // Send verification code via email after successful user registration
+        // Send verification email verification code 
         sendVerificationCodeEmail({email:data.email});
+        console.log("Register: Sent email verification code");
 
         const userDTO = {
             id: createdUser._id,
@@ -77,7 +85,7 @@ export const registerUser = async (req: Request, res: Response) => {
             message: 'User registered successfully',
             user: userDTO
         });
-
+        console.log("User created successfully")
     } catch (error) {
         res.status(500).json({ message: 'Registration failed', error: process.env.NODE_ENV === 'development' ? error : null });
     }
