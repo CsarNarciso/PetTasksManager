@@ -58,6 +58,11 @@ export const registerUser = async (req: Request, res: Response) => {
         const token = jwt.sign({ userId: createdUser._id}, ACCESS_SECRET, { expiresIn: ACCESS_EXPIRES_IN });
         res.cookie(ACCESS_COOKIE_NAME, token, COOKIE_OPTIONS);
 
+        //Update refresh token for user in DB
+        await User.findOneAndUpdate(createdUser._id, 
+            { $set: { refreshToken: refreshToken } }
+        );
+
         const userDTO = {
             id: createdUser._id,
             username: createdUser.username,
@@ -109,6 +114,11 @@ export const loginUser = async (req: Request, res: Response) => {
         // Generate access token (both in cookies)
         const token = jwt.sign({ userId: user._id}, ACCESS_SECRET, { expiresIn: ACCESS_EXPIRES_IN });
         res.cookie(ACCESS_COOKIE_NAME, token, COOKIE_OPTIONS);
+        
+        //Update refresh token for user in DB
+        await User.findOneAndUpdate(user._id, 
+            { $set: { refreshToken: refreshToken } }
+        );
 
         res.status(200).json({ 
             message: 'Successfully authenticated'
@@ -171,9 +181,24 @@ export const refresh = async (req: Request, res: Response) => {
             return;
         }
 
+        //refresh token is not the same the user stores in DB?
+        if(foundUser.refreshToken != refreshToken) {
+            res.status(401).json({message: "The token does not match in DB"});
+            return;
+        }
+
         //Generate new access token
         const newAccessToken = jwt.sign({ userId: foundUser.id }, ACCESS_SECRET, { expiresIn: ACCESS_EXPIRES_IN });
         res.cookie(ACCESS_COOKIE_NAME, newAccessToken, COOKIE_OPTIONS);
+
+        //Generate new refresh token
+        const newRefreshToken = jwt.sign({userId: foundUser._id}, REFRESH_COOKIE_NAME, {expiresIn: REFRESH_EXPIRES_IN});
+        
+        //Update refresh token for user in DB
+        await User.findOneAndUpdate(foundUser._id, 
+            { $set: { refreshToken: newRefreshToken } }
+        );
+        
         res.status(200).json({message:"New access token issued"});
         return;
 
