@@ -124,6 +124,7 @@ export const loginUser = async (req: Request, res: Response) => {
 
         //Generate refresh token
         const refreshToken = jwt.sign({ userId: user._id }, REFRESH_SECRET, { expiresIn: REFRESH_EXPIRES_IN });
+        console.log(refreshToken);
         res.cookie(REFRESH_COOKIE_NAME, refreshToken, COOKIE_OPTIONS);
         console.log("Login: Got refresh token");
 
@@ -362,8 +363,8 @@ export const checkIsEmailVerified = async (req:Request, res:Response) => {
         return;
 
     } catch (error) {
-        console.log("Unexpected error", error);
-        res.status(401).json({ message: "Unexpected error", error: error });
+        console.log(`Unexpected error: ${error}`);
+        res.status(401).json({ message: `Unexpected error: ${error}` });
         return;
     }
 
