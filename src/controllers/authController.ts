@@ -27,8 +27,6 @@ const REFRESH_EXPIRES_IN = process.env.REFRESH_TOKEN_EXPIRES_IN as any;
 const ACCESS_COOKIE_NAME = process.env.ACCESS_TOKEN_COOKIE_NAME as string;
 const REFRESH_COOKIE_NAME = process.env.REFRESH_TOKEN_COOKIE_NAME as string;
 
-const TOKEN_EXPIRED_ERROR = process.env.TOKEN_EXPIRED_ERROR as string;
-
 
 
 export const registerUser = async (req: Request, res: Response) => {
@@ -155,30 +153,8 @@ export const loginUser = async (req: Request, res: Response) => {
 
 // POST: Check for authenticated user
 export const authCheck = async (req: Request, res: Response) => {
-    
-    const accessToken = req.cookies?.token;
-    
-    if (!accessToken) { 
-        res.status(401).json({ message: 'Missing token' });
-        return; 
-    };
-
-    try {
-        const decoded = jwt.verify(accessToken, ACCESS_SECRET) as JwtPayloadWithUser;
-        const user = await User.findById(decoded.userId).select("id username email");
-
-        if (!user){
-            res.status(401).json({ message: 'User not found' });
-            return;
-        }
-
-        res.status(200).json({ message: 'Authenticated', user });
-        return;
-
-    } catch (error) {
-        res.status(401).json({ error: TOKEN_EXPIRED_ERROR, message: 'Invalid token' });
-        return;
-    }
+    res.status(200).json({ message: 'Authenticated', user: req.user });
+    return;
 };
 
 
@@ -235,139 +211,77 @@ export const refresh = async (req: Request, res: Response) => {
 
 // POST: Send email verification code
 export const sendEmailVerificationCode = async (req:Request, res:Response) => {
-    
-    // Get request cookies token
-    const token = req.cookies.token;
-    
-    if (!token) {
-        console.log("User is not authenticated");
-        res.status(401).json({ message: "No authenticated" });
+
+    // Get email adres
+    const user = req.user;
+
+    const userEmail = user.email;
+    if (!userEmail) { 
+        console.log("Email not found");
+        res.status(400).json({ message: "Missing email" });
+        return;
     }
 
     try {
-
-        const decoded = jwt.verify(token, ACCESS_SECRET) as JwtPayloadWithUser;
-        const user = await User.findById(decoded.userId).select("email");
-
-        if (!user){
-            res.status(401).json({ message: 'User not found' });
-            return;
-        }
-
-        // Get email adres
-        const userEmail = user.email;
-        if (!userEmail) { 
-            console.log("Email not found");
-            res.status(400).json({ message: "Missing email" });
-            return;
-        }
-
-        try {
-            sendVerificationCodeEmail({email:userEmail});
-        } catch (error) {
-            console.log("Failed to send email verification code", error);
-            res.status(401).json({ message: "Failed to send email verification code", error: error });
-            return;
-        }
+        sendVerificationCodeEmail({email:userEmail});
     } catch (error) {
-        console.log("Unexpected error", error);
-        res.status(401).json({ message: "Unexpected error", error: error });
+        console.log("Failed to send email verification code", error);
+        res.status(401).json({ message: "Failed to send email verification code", error: error });
         return;
     }
 };
 
 // POST: Email verification
 export const verifyEmail = async (req:Request, res:Response) => {
-    // Get request cookies token
-    const token = req.cookies.token;
-    if (!token) {
-        console.log("User is not authenticated");
-        res.status(401).json({ message: "No authenticated" });
+
+    
+    // User data
+    const user = req.user;
+    
+    const userEmail = user.email;
+    const { code } = req.body;
+    if (!userEmail || !code) { 
+        console.log("Missing data (code)");
+        res.status(400).json({ message: "Missing data" });
         return;
     }
 
-    try {
-        // User auth check
-        const decoded = jwt.verify(token, ACCESS_SECRET) as JwtPayloadWithUser;
-        const user = await User.findById(decoded.userId).select("id username email");
-        if (!user) {
-            res.status(404).json({ message: "User not found" });
-            console.log("User not found");
-            return;
-        }
-
-        // Data
-        const userEmail = user.email;
-        const { code } = req.body;
-        if (!userEmail || !code) { 
-            console.log("Missing data (code)");
-            res.status(400).json({ message: "Missing data" });
-            return;
-        }
-
-        // Code verification
-        const verificationCode = await EmailVerification.findOne({email:userEmail, code:code});
-        if (!verificationCode) {
-            console.log("Verification code not found/invalid");
-            res.status(400).json({ message: "Invalid code" });
-            return;
-        }
-
-        // Update user
-        await User.updateOne({ _id: user._id }, {isEmailVerified:true});
-        console.log("Updated user (isEmailVerified:true)");
-
-        // Delete verification code
-        await EmailVerification.deleteOne({ email: userEmail });
-
-        console.log("Email verified successfully");
-        res.status(200).json({ message: "Email verified successfully" });
-        return;
-    } catch (error) {
-        console.log("Failed to verify email", error);
-        res.status(401).json({ message: "Unexpected error", error: error });
+    // Code verification
+    const verificationCode = await EmailVerification.findOne({email:userEmail, code:code});
+    if (!verificationCode) {
+        console.log("Verification code not found/invalid");
+        res.status(400).json({ message: "Invalid code" });
         return;
     }
+
+    // Update user
+    await User.updateOne({ _id: user._id }, {isEmailVerified:true});
+    console.log("Updated user (isEmailVerified:true)");
+
+    // Delete verification code
+    await EmailVerification.deleteOne({ email: userEmail });
+
+    console.log("Email verified successfully");
+    res.status(200).json({ message: "Email verified successfully" });
+    return;
 };
 
 // POST: Check is email verified
 export const checkIsEmailVerified = async (req:Request, res:Response) => {
-    // Get request cookies token
-    const token = req.cookies.token;
-    if (!token) {
-        console.log("User is not authenticated");
-        res.status(401).json({ message: "No authenticated" });
+
+    // User data
+    const user = req.user;
+
+    const isEmailVerified = user.isEmailVerified;
+    if (!isEmailVerified) { 
+        console.log("Missing data (isEmailVerified) or email is not verified yet");
+        res.status(400).json({ message: "Missing data (isEmailVerified) | not verified email" });
         return;
     }
-
-    try {
-        // User auth check
-        const decoded = jwt.verify(token, ACCESS_SECRET) as JwtPayloadWithUser;
-        const user = await User.findById(decoded.userId).select("id username email");
-        if (!user) {
-            res.status(404).json({ message: "User not found" });
-            console.log("User not found");
-            return;
-        }
-
-        // User data
-        const isEmailVerified = user.isEmailVerified;
-        if (!isEmailVerified) { 
-            console.log("Missing data (isEmailVerified) or email is not verified yet");
-            res.status(400).json({ message: "Missing data (isEmailVerified) | not verified email" });
-            return;
-        }
-        
-        console.log("Email is already verified");
-        res.status(200).json({ message: "Email is already verified!" });
-        return;
-
-    } catch (error) {
-        console.log(`Unexpected error: ${error}`);
-        res.status(401).json({ message: `Unexpected error: ${error}` });
-        return;
-    }
-
+    
+    console.log("Email is already verified");
+    res.status(200).json({ message: "Email is already verified!" });
+    return;
 };
 
 
