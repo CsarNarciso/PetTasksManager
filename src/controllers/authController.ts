@@ -98,7 +98,7 @@ export const loginUser = async (req: Request, res: Response) => {
     try {
         const { input, password } = loginSchema.parse(req.body);
         const hashedPassword = await bcrypt.hash(password, 10);
-        console.log("Request body", {input, hashedPassword});
+        console.log("Login: Got data from body", {input, hashedPassword});
 
         // Find user by email or username
         let user;
@@ -107,38 +107,45 @@ export const loginUser = async (req: Request, res: Response) => {
         } else {
             user = await userService.findByUsername(input);
         }
-        
         if (!user) {
-            res.status(401).json({ message: 'Invalid credentials' });
+            console.log("Login: User not found");
+            res.status(404).json({ message: 'User not found' });
             return;
         }
+        console.log("Login: Got found user");
 
         // Check password
         if (!(await bcrypt.compare(password, user.password))) {
+            console.log("Login: Invalid credentials");
             res.status(401).json({ message: 'Invalid credentials' });
             return;
         }
+        console.log("Login: Password checked");
 
         //Generate refresh token
         const refreshToken = jwt.sign({ userId: user._id }, REFRESH_SECRET, { expiresIn: REFRESH_EXPIRES_IN });
         res.cookie(REFRESH_COOKIE_NAME, refreshToken, COOKIE_OPTIONS);
+        console.log("Login: Got refresh token");
 
         // Generate access token (both in cookies)
         const token = jwt.sign({ userId: user._id}, ACCESS_SECRET, { expiresIn: ACCESS_EXPIRES_IN });
         res.cookie(ACCESS_COOKIE_NAME, token, COOKIE_OPTIONS);
+        console.log("Login: Got access token");
         
         //Update refresh token for user in DB
         await User.findOneAndUpdate(user._id, 
             { $set: { refreshToken: refreshToken } }
         );
+        console.log("Login: Refreshed refresh token");
 
+        console.log("Login: Successfully authenticated");
         res.status(200).json({ 
             message: 'Successfully authenticated'
         });
         return;
         
     } catch (error) {
-        res.status(500).json({ message: 'Login failed', error });
+        res.status(500).json({ message: `Login: Unexpected error (${error})`});
         return;
     }
 };
