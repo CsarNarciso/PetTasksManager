@@ -43,7 +43,6 @@ export const registerUser = async (req: Request, res: Response) => {
         }
         console.log("Register: User is not in existance");
 
-
         // Create new user
         const hashedPassword = await bcrypt.hash(data.password, 10);
         const createdUser = await User.create({
@@ -67,7 +66,6 @@ export const registerUser = async (req: Request, res: Response) => {
         await User.findOneAndUpdate(createdUser._id, 
             { $set: { refreshToken: refreshToken } }
         );
-        console.log("Register: Updated refresh token");
 
         // Send verification email verification code 
         sendVerificationCodeEmail({email:data.email});
@@ -122,7 +120,6 @@ export const loginUser = async (req: Request, res: Response) => {
 
         //Generate refresh token
         const refreshToken = jwt.sign({ userId: user._id }, REFRESH_SECRET, { expiresIn: REFRESH_EXPIRES_IN });
-        console.log(refreshToken);
         res.cookie(REFRESH_COOKIE_NAME, refreshToken, COOKIE_OPTIONS);
         console.log("Login: Got refresh token");
 
@@ -170,16 +167,16 @@ export const refresh = async (req: Request, res: Response) => {
     }
 
     try {
-
         const decoded = jwt.verify(refreshToken, REFRESH_SECRET) as JwtPayloadWithUser;
-        const foundUser = await User.findOne(decoded._id).select("id");
-    
+        const foundUser = await User.findById(decoded.userId).select("id refreshToken");
+        
         if(!foundUser) {
             res.status(401).json({message: "user not found"});
             return;
         }
     
         //refresh token is not the same the user stores in DB?
+        
         if(foundUser.refreshToken != refreshToken) {
             res.status(401).json({message: "The token does not match in DB"});
             return;
@@ -188,9 +185,10 @@ export const refresh = async (req: Request, res: Response) => {
         //Generate new access token
         const newAccessToken = jwt.sign({ userId: foundUser.id }, ACCESS_SECRET, { expiresIn: ACCESS_EXPIRES_IN });
         res.cookie(ACCESS_COOKIE_NAME, newAccessToken, COOKIE_OPTIONS);
-    
+        
         //Generate new refresh token
-        const newRefreshToken = jwt.sign({userId: foundUser._id}, REFRESH_COOKIE_NAME, {expiresIn: REFRESH_EXPIRES_IN});
+        const newRefreshToken = jwt.sign({userId: foundUser._id}, REFRESH_SECRET, {expiresIn: REFRESH_EXPIRES_IN});
+        res.cookie(REFRESH_COOKIE_NAME, newRefreshToken, COOKIE_OPTIONS);
         
         //Update refresh token for user in DB
         await User.findOneAndUpdate(foundUser._id, 
@@ -201,7 +199,7 @@ export const refresh = async (req: Request, res: Response) => {
         return;
 
     } catch (err) {
-        res.status(401).json({message: "invalid token"});
+        res.status(401).json({message: "invalid refresh token"});
         return;
     }
 }
@@ -214,8 +212,8 @@ export const sendEmailVerificationCode = async (req:Request, res:Response) => {
 
     // Get email adres
     const user = req.user;
-
     const userEmail = user.email;
+    
     if (!userEmail) { 
         console.log("Email not found");
         res.status(400).json({ message: "Missing email" });
@@ -225,16 +223,17 @@ export const sendEmailVerificationCode = async (req:Request, res:Response) => {
     try {
         sendVerificationCodeEmail({email:userEmail});
     } catch (error) {
-        console.log("Failed to send email verification code", error);
-        res.status(401).json({ message: "Failed to send email verification code", error: error });
+        console.error("Error sending email verification code: ", error);
+        res.status(500).json({ message: "Failed to send email verification code" });
         return;
     }
 };
 
+
+
 // POST: Email verification
 export const verifyEmail = async (req:Request, res:Response) => {
 
-    
     // User data
     const user = req.user;
     
@@ -265,6 +264,8 @@ export const verifyEmail = async (req:Request, res:Response) => {
     res.status(200).json({ message: "Email verified successfully" });
     return;
 };
+
+
 
 // POST: Check is email verified
 export const checkIsEmailVerified = async (req:Request, res:Response) => {
