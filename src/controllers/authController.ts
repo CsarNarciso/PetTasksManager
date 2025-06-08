@@ -38,7 +38,7 @@ export const registerUser = async (req: Request, res: Response) => {
         console.log("User created!");
 
         // Generate and sent JWT via cookie
-        const token = jwt.sign({ userId: createdUser._id }, JWT_SECRET, { expiresIn: '15m' });
+        const token = jwt.sign({ userId: createdUser._id }, JWT_SECRET, { expiresIn: '1d' });
         res.cookie("token", token, COOKIE_OPTIONS);
         console.log("Token generated");
 
@@ -58,6 +58,7 @@ export const registerUser = async (req: Request, res: Response) => {
             user: userDTO,
             token: token
         });
+        return;
 
     } catch (error) {
         res.status(500).json({ message: 'Registration failed', error: process.env.NODE_ENV === 'development' ? error : null });
@@ -98,7 +99,7 @@ export const loginUser = async (req: Request, res: Response) => {
         };
 
         // Generate JWT
-        const token = jwt.sign({ userId: user._id}, JWT_SECRET, { expiresIn: '15m' });
+        const token = jwt.sign({ userId: user._id}, JWT_SECRET, { expiresIn: '1d' });
         res.cookie("token", token, COOKIE_OPTIONS);
         console.log("User was successfully authenticated using JWT");
         res.status(200).json({ 
