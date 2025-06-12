@@ -98,12 +98,8 @@ export const loginUser = async (req: Request, res: Response) => {
         console.log("Login: Got data from body", {input, hashedPassword});
 
         // Find user by email or username
-        let user;
-        if (/\S+@\S+\.\S+/.test(input)) {
-            user = await userService.findByEmail(input);
-        } else {
-            user = await userService.findByUsername(input);
-        }
+        let user = await User.findOne({input}).select("id password isEmailVerified");
+        
         if (!user) {
             res.status(401).json({ message: 'Invalid credentials' });
             return;
@@ -113,13 +109,6 @@ export const loginUser = async (req: Request, res: Response) => {
         if (!(await bcrypt.compare(password, user.password))) {
             res.status(401).json({ message: 'Invalid credentials' });
         }
-
-        // User DTO for response (without exposing delicate data)
-        const userDTO = {
-            id: user._id,
-            username: user.username,
-            email: user.email
-        };
 
          //Generate refresh token
         const refreshToken = jwt.sign({ userId: user._id }, REFRESH_SECRET, { expiresIn: REFRESH_EXPIRES_IN });
@@ -139,8 +128,7 @@ export const loginUser = async (req: Request, res: Response) => {
         console.log("User was successfully authenticated using JWT");
         res.status(200).json({ 
             message: 'Login successful', 
-            token: token,
-            user: userDTO
+            isEmailVerified: user.isEmailVerified
         });
         
     } catch (error) {
@@ -266,25 +254,6 @@ export const verifyEmail = async (req:Request, res:Response) => {
     return;
 };
 
-
-
-// POST: Check is email verified
-export const checkIsEmailVerified = async (req:Request, res:Response) => {
-
-    // User data
-    const user = req.user;
-
-    const isEmailVerified = user.isEmailVerified;
-    if (!isEmailVerified) { 
-        console.log("Missing data (isEmailVerified) or email is not verified yet");
-        res.status(400).json({ message: "Missing data (isEmailVerified) | not verified email" });
-        return;
-    }
-    
-    console.log("Email is already verified");
-    res.status(200).json({ message: "Email is already verified!" });
-    return;
-};
 
 
 
