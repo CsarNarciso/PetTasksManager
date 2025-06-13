@@ -96,14 +96,23 @@ export const loginUser = async (req: Request, res: Response) => {
         const { input, password } = loginSchema.parse(req.body);
         const hashedPassword = await bcrypt.hash(password, 10);
         console.log("Login: Got data from body", {input, hashedPassword});
+        
+        let user;
+        const userFieldsFilter = "id password isEmailVerified";
 
         // Find user by email or username
-        let user = await User.findOne({input}).select("id password isEmailVerified");
+        if (/\S+@\S+\.\S+/.test(input)) {
+            user = await User.findOne({email:input}).select(userFieldsFilter);
+        } else {
+            user = await User.findOne({username:input}).select(userFieldsFilter);
+        }
         
+       
         if (!user) {
-            res.status(401).json({ message: 'Invalid credentials' });
+            res.status(401).json({ message: 'User does not exist' });
             return;
         }
+        
 
         // Check password
         if (!(await bcrypt.compare(password, user.password))) {

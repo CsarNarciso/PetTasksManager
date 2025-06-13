@@ -1,5 +1,4 @@
 import nodemailer from "nodemailer";
-import { connectDB } from "./database";
 import emailVerificationSchema from "../schemas/emailVerificationSchema";
 
 // Enable enviroment variables
@@ -12,9 +11,6 @@ interface EmailVerificationProps {
 
 // Send email verification code to email
 export const sendVerificationCodeEmail = async ({email}:EmailVerificationProps) => {
-    // Connect to db
-    await connectDB()  
-
     // Generate email verification code
     const code = Math.floor(100000 + Math.random() * 900000).toString(); // 6-digit code
   
