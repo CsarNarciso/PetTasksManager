@@ -12,6 +12,6 @@ authRouter.post('/logout', logoutUser);
 authRouter.get('/check', [authenticate, emailVerification], authCheck);
 authRouter.post('/verifyEmail', authenticate, verifyEmail);
 authRouter.post('/sendEmailVerificationCode', authenticate, sendEmailVerificationCode);
-authRouter.post('/checkIsEmailVerified', [authenticate], checkIsEmailVerified);
+authRouter.post('/checkIsEmailVerified', authenticate, checkIsEmailVerified);
 
 export default authRouter;
