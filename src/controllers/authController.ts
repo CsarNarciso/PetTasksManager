@@ -97,17 +97,16 @@ export const loginUser = async (req: Request, res: Response) => {
         const hashedPassword = await bcrypt.hash(password, 10);
         console.log("Login: Got data from body", {input, hashedPassword});
         
+        // Find user by email or username
         let user;
         const userFieldsFilter = "id password isEmailVerified";
 
-        // Find user by email or username
         if (/\S+@\S+\.\S+/.test(input)) {
             user = await User.findOne({email:input}).select(userFieldsFilter);
         } else {
             user = await User.findOne({username:input}).select(userFieldsFilter);
         }
         
-       
         if (!user) {
             res.status(401).json({ message: 'User does not exist' });
             return;
@@ -134,9 +133,16 @@ export const loginUser = async (req: Request, res: Response) => {
             { $set: { refreshToken: refreshToken } }
         );
 
+        const userDTO = {
+            id: user._id,
+            username: user.username,
+            email: user.email,
+        };
+
         console.log("User was successfully authenticated using JWT");
         res.status(200).json({ 
-            message: 'Login successful', 
+            message: 'Login successful',
+            user,
             isEmailVerified: user.isEmailVerified
         });
         
@@ -149,7 +155,7 @@ export const loginUser = async (req: Request, res: Response) => {
 
 // POST: Check for authenticated user
 export const authCheck = async (req: Request, res: Response) => {
-    res.status(200).json({ message: 'Authenticated', user: req.user });
+    res.status(200).json({ message: 'Authenticated', user: req.user, isEmailVerified: true });
     return;
 };
 
@@ -244,6 +250,8 @@ export const verifyEmail = async (req:Request, res:Response) => {
     }
 
     // Code verification
+    console.log("EMAIL ", userEmail);
+    console.log("CODE ", code);
     const verificationCode = await EmailVerification.findOne({email:userEmail, code:code});
     if (!verificationCode) {
         console.log("Verification code not found/invalid");
@@ -263,6 +271,26 @@ export const verifyEmail = async (req:Request, res:Response) => {
     return;
 };
 
+
+
+// POST: Check is email verified
+export const checkIsEmailVerified = async (req:Request, res:Response) => {
+
+    // User data
+    const user = req.user;
+    const isEmailVerified = user.isEmailVerified;
+
+    if (!isEmailVerified) { 
+
+        console.log("Missing data (isEmailVerified) or email is not verified yet");
+        res.status(400).json({ message: "Missing data (isEmailVerified) | not verified email" });
+        return;
+    }
+
+    console.log("Email is already verified");
+    res.status(200).json({ message: "Email is already verified!" });
+    return;
+};
 
 
 

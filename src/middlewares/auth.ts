@@ -27,7 +27,7 @@ const authetnicate = async (req: Request, res: Response, next: NextFunction) => 
     try {
 
         const decoded = jwt.verify(token, ACCESS_SECRET) as JwtPayloadWithUser;
-        const foundUser = await User.findById(decoded.userId).select("id username email");
+        const foundUser = await User.findById(decoded.userId).select("id username email isEmailVerified");
 
         if (!foundUser){
             res.status(401).json({ message: 'User not found' });
