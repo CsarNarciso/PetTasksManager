@@ -9,7 +9,6 @@ const emailVerification = (req: Request, res: Response, next: NextFunction) => {
     const user = req.user;
 
     if(!user.isEmailVerified) {
-        console.log("aaaaaaaa");
         res.status(401).json({ message: "Email is not verified", error: UNVERIFIED_EMAIL_ERROR_CODE });
         return;
     }
