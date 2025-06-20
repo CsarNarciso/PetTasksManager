@@ -108,7 +108,7 @@ export const loginUser = async (req: Request, res: Response) => {
         }
         
         if (!user) {
-            res.status(401).json({ message: 'User does not exist' });
+            res.status(404).json({ message: 'User does not exist' });
             return;
         }
         
