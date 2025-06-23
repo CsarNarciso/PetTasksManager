@@ -155,7 +155,12 @@ export const loginUser = async (req: Request, res: Response) => {
 
 // POST: Check for authenticated user
 export const authCheck = async (req: Request, res: Response) => {
-    res.status(200).json({ message: 'Authenticated', user: req.user, isEmailVerified: true });
+    const user = {
+        id: req.user.id, 
+        username: req.user.username, 
+        email: req.user.email
+    };
+    res.status(200).json({ message: 'Authenticated', user, isEmailVerified: req.user.isEmailVerified});
     return;
 };
 
@@ -271,26 +276,6 @@ export const verifyEmail = async (req:Request, res:Response) => {
     return;
 };
 
-
-
-// POST: Check is email verified
-export const checkIsEmailVerified = async (req:Request, res:Response) => {
-
-    // User data
-    const user = req.user;
-    const isEmailVerified = user.isEmailVerified;
-
-    if (!isEmailVerified) { 
-
-        console.log("Missing data (isEmailVerified) or email is not verified yet");
-        res.status(400).json({ message: "Missing data (isEmailVerified) | not verified email" });
-        return;
-    }
-
-    console.log("Email is already verified");
-    res.status(200).json({ message: "Email is already verified!" });
-    return;
-};
 
 
 
