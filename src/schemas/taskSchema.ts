@@ -13,6 +13,9 @@ const taskSchema = new Schema({
 		type:Boolean, 
 		default:false
     },
+    showAt: {
+        type: Date
+    },
     userId: {
         
         type: mongoose.Schema.Types.ObjectId,
