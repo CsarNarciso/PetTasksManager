@@ -142,7 +142,7 @@ export const loginUser = async (req: Request, res: Response) => {
         console.log("User was successfully authenticated using JWT");
         res.status(200).json({ 
             message: 'Login successful',
-            user,
+            user: userDTO,
             isEmailVerified: user.isEmailVerified
         });
         
