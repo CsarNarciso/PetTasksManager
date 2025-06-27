@@ -16,11 +16,17 @@ export const createTask = async (req: Request, res: Response) => {
 
 // PATCH
 export const setTaskAsCompleted = async (req: Request, res: Response) => {
-	// Get body data
-    const taskId = req.query.taskId;
+	
+    // Get body data
+    const taskId = req.body.taskId;
+    const daysToReset = req.body.daysToReset;
+
+    // Calculate date this task will be shown again
+    const currentDate = new Date();
+    const showAt = currentDate.setDate(currentDate.getDate() + daysToReset);
     
     try {
-        const task = await Task.findByIdAndUpdate(taskId, {isCompleted:true}, {new:true});
+        const task = await Task.findByIdAndUpdate(taskId, {isCompleted:true, showAt}, {new:true});
 
         if (!task) {
             res.status(404).json({ message: 'Task not found' });
@@ -51,8 +57,11 @@ export const fetchTasksByUserId = async (req: Request, res: Response) => {
     */
     const userId = req.query.userId;
 
+    // Get today date to only get tasks to show today (or passed tasks, like, tomorrow not-fetched ones)
+    const today = new Date();
+
 	try {
-        const tasks = await Task.find({userId});
+        const tasks = await Task.find({userId, showAt: {$gte: today}});
 
         if (!tasks || tasks.length === 0) {
     	    res.status(404).json({ message: 'No tasks linked to this user found'});
