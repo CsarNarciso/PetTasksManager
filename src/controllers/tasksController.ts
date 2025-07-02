@@ -1,10 +1,12 @@
 import { Request, Response} from 'express';
 import Task from '../schemas/taskSchema';
-import { z } from 'zod';
 
 // POST
 export const createTask = async (req: Request, res: Response) => {
     const data = new Task(req.body);
+    
+    const currentDate = new Date();
+    data.showAt = currentDate;
     
     try {
         const task = await Task.create(data);
@@ -57,16 +59,26 @@ export const fetchTasksByUserId = async (req: Request, res: Response) => {
     */
     const userId = req.query.userId;
 
-    // Get today date to only get tasks to show today (or passed tasks, like, tomorrow not-fetched ones)
-    const today = new Date();
-
 	try {
-        const tasks = await Task.find({userId, showAt: {$gte: today}});
+
+        // Get today date to only fetch tasks to show today (or passed tasks like: tomorrow not-fetched ones)
+        const today = new Date();
+        const tasks = await Task.find({userId, showAt: {$lte: today}});
 
         if (!tasks || tasks.length === 0) {
     	    res.status(404).json({ message: 'No tasks linked to this user found'});
             return;
         }
+
+        console.log("Original FETCHED TASKS: ", tasks);
+
+        // Update to-show-today tasks with done status to uncompleted one (reset)
+        tasks.map(task => {
+            if(task.isCompleted)
+                return {...task, isCompleted: false};
+        });
+
+        console.log("Updated FETCHED TASKS: ", tasks);
 
         const completedCount = tasks.filter(task => task.isCompleted).length;
         const uncompletedCount = tasks.filter(task => !task.isCompleted).length;
