@@ -40,12 +40,14 @@ export const preLoadUserDBData = async () => {
         //Load test user
         const username = 'user';
         const password = 'password';
+        const isEmailVerified = true;
 
         const user = await userSchema.create(
             {
                 username, 
                 email:`${username}@gmail.com`, 
                 password: await bcrypt.hash(password, 10), 
+                isEmailVerified: isEmailVerified
             }); 
         console.log(`Test user pre-loaded on DB: '${username}' with password '${password}'`);
 
