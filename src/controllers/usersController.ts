@@ -3,17 +3,22 @@ import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import userSchema from '../schemas/userSchema';
 import { deleteUser } from "../services/userService";
+import { decode } from 'punycode';
 
 require('dotenv').config();
 const JWT_SECRET = process.env.JWT_SECRET as string;
 
 export const deleteAccount = async (req: Request, res: Response) => {
     const token = req.cookies.token;
+    const { password } = req.body;
 
     if (!token) res.status(401).json({ error: "Not authenticated" });
 
+    
     try {
-        const decoded = jwt.verify(token, JWT_SECRET) as { username: string };
+        const decoded = jwt.verify(token, JWT_SECRET) as { username: string, password: string };
+        
+        if (!bcrypt.compare(decoded.password, password)) res.status(401).json({ error:"Credentials are invalid (provided password)" })
 
         const userIsDeleted = deleteUser(decoded.username);
 
