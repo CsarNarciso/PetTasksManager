@@ -3,7 +3,6 @@ import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import userSchema from '../schemas/userSchema';
 import { deleteUser } from "../services/userService";
-import { decode } from 'punycode';
 
 require('dotenv').config();
 const JWT_SECRET = process.env.JWT_SECRET as string;
