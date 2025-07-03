@@ -2,11 +2,28 @@ import { Request, Response} from 'express';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import userSchema from '../schemas/userSchema';
+import { deleteUser } from "../services/userService";
 
 require('dotenv').config();
 const JWT_SECRET = process.env.JWT_SECRET as string;
 
+export const deleteAccount = async (req: Request, res: Response) => {
+    const token = req.cookies.token;
 
+    if (!token) res.status(401).json({ error: "Not authenticated" });
+
+    try {
+        const decoded = jwt.verify(token, JWT_SECRET) as { username: string };
+
+        const userIsDeleted = deleteUser(decoded.username);
+
+        if (!userIsDeleted) res.status(403).json({ error: "User was not deleted" });
+        res.status(200).json({ message: "User was deleted successfully" })
+        
+    } catch (error) {
+        res.status(500).json({ error: `Unexpected error: ${error}` });
+    }
+}
 
 export const fetchAuthUserData = async (req: Request, res: Response) => {
     const token = req.cookies.token; 
@@ -19,7 +36,7 @@ export const fetchAuthUserData = async (req: Request, res: Response) => {
         console.log("User data:", user);
         res.status(200).json({ data: user });
     } catch (error) {
-        res.status(401).json({ message: 'Invalid token' });
+        res.status(401).json({ message: 'Unexpected error' });
     }
 }
 

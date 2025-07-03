@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { listUsers, fetchUserByUsername, createUser, fetchAuthUserData } from '../controllers/usersController';
+import { listUsers, fetchUserByUsername, createUser, fetchAuthUserData, deleteAccount } from '../controllers/usersController';
 import authetnicate from '../middlewares/auth';
 
 const usersRouter = Router();
@@ -11,5 +11,6 @@ usersRouter.get('/', listUsers);
 usersRouter.get('/search', fetchUserByUsername);
 usersRouter.post('/', createUser);
 usersRouter.get('/authuserdata', fetchAuthUserData);
+usersRouter.delete('/deleteAccount', deleteAccount);
 
 export default usersRouter;
