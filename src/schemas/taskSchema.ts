@@ -13,6 +13,12 @@ const taskSchema = new Schema({
 		type:Boolean, 
 		default:false
     },
+    completedAt: {
+        type: Date
+    },
+    showAt: {
+        type: Date
+    },
     userId: {
         
         type: mongoose.Schema.Types.ObjectId,

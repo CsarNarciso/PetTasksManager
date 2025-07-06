@@ -1,10 +1,13 @@
 import { Request, Response} from 'express';
 import Task from '../schemas/taskSchema';
-import { z } from 'zod';
+import { time } from 'console';
 
 // POST
 export const createTask = async (req: Request, res: Response) => {
     const data = new Task(req.body);
+    
+    const currentDate = new Date();
+    data.showAt = currentDate;
     
     try {
         const task = await Task.create(data);
@@ -16,11 +19,25 @@ export const createTask = async (req: Request, res: Response) => {
 
 // PATCH
 export const setTaskAsCompleted = async (req: Request, res: Response) => {
-	// Get body data
+	
+    // Get body data
     const taskId = req.query.taskId;
-    
+    const timeToResetInSeconds = req.body.timeToResetInSeconds;
+
+    // Calculate date this task will be shown again
+    const originalCurrentDate = new Date();
+    let currentDate = originalCurrentDate;
+    const showAt = currentDate.setSeconds(currentDate.getSeconds() + timeToResetInSeconds);
+    currentDate = originalCurrentDate;
+
     try {
-        const task = await Task.findByIdAndUpdate(taskId, {isCompleted:true}, {new:true});
+        const task = await Task.findByIdAndUpdate(taskId, 
+            {
+                isCompleted:true, 
+                showAt, 
+                completedAt: currentDate
+            },
+        {new:true});
 
         if (!task) {
             res.status(404).json({ message: 'Task not found' });
@@ -44,6 +61,12 @@ export const deleteTask = async (req: Request, res: Response) => {
     }
 }
 
+const sameDay = (d1: Date, d2: Date) => {
+    return d1.getFullYear() === d2.getFullYear() &&
+        d1.getMonth() === d2.getMonth() &&
+        d1.getDate() === d2.getDate();
+}
+
 // GET
 export const fetchTasksByUserId = async (req: Request, res: Response) => {
     /*
@@ -52,12 +75,33 @@ export const fetchTasksByUserId = async (req: Request, res: Response) => {
     const userId = req.query.userId;
 
 	try {
-        const tasks = await Task.find({userId});
+
+        // Get today date to only fetch tasks to show today (or passed tasks like: tomorrow not-fetched ones)
+        // But also tasks that has been completed today
+        const originalToday = new Date();
+        let today = new Date(originalToday);
+        const startOfToday = new Date(today.setHours(0,0,0,0));
+        const endOfToday = new Date(today.setHours(23,59,59,999));
+        today = originalToday;
+
+        const tasks = await Task.find({userId, $or: 
+            [{showAt: {$lte: today}}, 
+            {completedAt: 
+                {$gte: startOfToday, 
+                $lte: endOfToday}
+            }]
+        });
 
         if (!tasks || tasks.length === 0) {
     	    res.status(404).json({ message: 'No tasks linked to this user found'});
             return;
         }
+
+        // Update to-show-today tasks with done status to uncompleted one (reset)
+        tasks.forEach(task => {
+            if(task.isCompleted && (task.showAt && task.showAt.getTime() <= today.getTime()))
+                task.isCompleted = false;
+        });
 
         const completedCount = tasks.filter(task => task.isCompleted).length;
         const uncompletedCount = tasks.filter(task => !task.isCompleted).length;
