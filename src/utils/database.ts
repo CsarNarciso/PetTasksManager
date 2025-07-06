@@ -73,28 +73,41 @@ export const preLoadTasksDBData = async () => {
         }
 
         // Create preload tasks
+
+        // Task to show today (or that have to been showed since yesterday)
+
+        const today = new Date();
+        const tomorrow = today.setDate(today.getDate() + 1);
+        const yesterday = today.setDate(today.getDate() - 1);
+
         await taskSchema.create({
             name:"Task 1", 
             isCompleted:false, 
-            userId:defaultUser._id
+            userId:defaultUser._id,
+            showAt: today
         });
 
         await taskSchema.create({
             name:"Task 2", 
             isCompleted:false, 
-            userId:defaultUser._id
+            userId:defaultUser._id,
+            showAt: yesterday
         });
+
+        // Task to show tomorrow
 
         await taskSchema.create({
             name:"Task 3", 
             isCompleted:true, 
-            userId:defaultUser._id
+            userId:defaultUser._id,
+            showAt: tomorrow
         });
 
         await taskSchema.create({
             name:"Task 4", 
             isCompleted:true, 
-            userId:defaultUser._id
+            userId:defaultUser._id,
+            showAt: tomorrow
         });
 
         console.log("Preload tasks were created");
