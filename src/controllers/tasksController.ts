@@ -22,28 +22,30 @@ export const setTaskAsCompleted = async (req: Request, res: Response) => {
 	
     // Get body data
     const taskId = req.query.taskId;
-    const timeToResetInSeconds = req.body.timeToResetInSeconds;
-
-    // Calculate date this task will be shown again
-    const originalCurrentDate = new Date();
-    let currentDate = originalCurrentDate;
-    const showAt = currentDate.setSeconds(currentDate.getSeconds() + timeToResetInSeconds);
-    currentDate = originalCurrentDate;
 
     try {
-        const task = await Task.findByIdAndUpdate(taskId, 
-            {
-                isCompleted:true, 
-                showAt, 
-                completedAt: currentDate
-            },
-        {new:true});
+        let task = await Task.findById(taskId); 
 
         if (!task) {
             res.status(404).json({ message: 'Task not found' });
+            return;
         }
 
-		res.status(201).json({ message: 'Task completed!', request_body: task});
+        // Calculate date this task will be shown again
+        const originalCurrentDate = new Date();
+        let currentDate = new Date(originalCurrentDate);
+        const showAt = new Date(currentDate.setSeconds(currentDate.getSeconds() + task.timeToResetInSeconds));
+        currentDate = originalCurrentDate;
+
+        task.isCompleted = true;
+        task.showAt = showAt;
+        task.completedAt = currentDate;
+
+        const completedTask = await task.save();
+        
+        console.log("TIME TO RESET: ", completedTask.timeToResetInSeconds);
+
+		res.status(201).json({ message: 'Task completed!', request_body: completedTask});
     } catch (error) {
         res.status(500).json({ message: 'Internal server error', error });
     }

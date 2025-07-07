@@ -13,6 +13,10 @@ const taskSchema = new Schema({
 		type:Boolean, 
 		default:false
     },
+    timeToResetInSeconds: {
+        type: Number,
+        default: 60*60*24
+    },
     completedAt: {
         type: Date
     },
