@@ -13,6 +13,9 @@ const taskSchema = new Schema({
 		type:Boolean, 
 		default:false
     },
+    type: {
+        type: String
+    },
     timeToResetInSeconds: {
         type: Number,
         default: 60*60*24

@@ -5,10 +5,15 @@ import { time } from 'console';
 // POST
 export const createTask = async (req: Request, res: Response) => {
     const data = new Task(req.body);
-    
-    const currentDate = new Date();
-    data.showAt = currentDate;
-    
+        
+    if(data.type != "o") {
+
+        const currentDate = new Date();
+        
+        data.showAt = new Date(currentDate.setSeconds(currentDate.getSeconds() + ((data.type == "d") 
+                ? 60 * 60 * 24 // If daily type
+                : data.timeToResetInSeconds))); // or custom one
+    }  
     try {
         const task = await Task.create(data);
 		res.status(200).json({ message: 'Task created!', request_body: task});
@@ -31,21 +36,27 @@ export const setTaskAsCompleted = async (req: Request, res: Response) => {
             return;
         }
 
-        // Calculate date this task will be shown again
-        const originalCurrentDate = new Date();
-        let currentDate = new Date(originalCurrentDate);
-        const showAt = new Date(currentDate.setSeconds(currentDate.getSeconds() + task.timeToResetInSeconds));
-        currentDate = originalCurrentDate;
+        // Handle daily or custom tasks
+        if(task.type != "o") {
 
-        task.isCompleted = true;
-        task.showAt = showAt;
-        task.completedAt = currentDate;
+            // Calculate date this task will be shown again
+            const originalCurrentDate = new Date();
+            let currentDate = new Date(originalCurrentDate);
+            const showAt = new Date(currentDate.setSeconds(currentDate.getSeconds() + task.timeToResetInSeconds));
+            currentDate = originalCurrentDate;
+    
+            task.isCompleted = true;
+            task.showAt = showAt;
+            task.completedAt = currentDate;
+    
+            const completedTask = await task.save();
+            res.status(201).json({ message: 'Task completed!', request_body: completedTask});
+        }
 
-        const completedTask = await task.save();
-        
-        console.log("TIME TO RESET: ", completedTask.timeToResetInSeconds);
+        // Handle one-use tasks (auto deletion)
+        await task.deleteOne();
+        res.status(204).json({ message: 'One-use task completed! Auto deleted'});
 
-		res.status(201).json({ message: 'Task completed!', request_body: completedTask});
     } catch (error) {
         res.status(500).json({ message: 'Internal server error', error });
     }
