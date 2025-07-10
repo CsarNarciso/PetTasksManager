@@ -5,15 +5,23 @@ import { time } from 'console';
 // POST
 export const createTask = async (req: Request, res: Response) => {
     const data = new Task(req.body);
-        
-    if(data.type != "o") {
+    
+    // Calculate time to enable (show) task based on type
+    const currentDate = new Date();
 
-        const currentDate = new Date();
-        
-        data.showAt = new Date(currentDate.setSeconds(currentDate.getSeconds() + ((data.type == "d") 
-                ? 60 * 60 * 24 // If daily type
-                : data.timeToResetInSeconds))); // or custom one
-    }  
+    // Handle One-use type
+    if(data.type == "o") {
+        data.showAt = currentDate;
+    }
+    else {
+        if(data.type && data.timeToResetInSeconds) {
+
+            data.showAt = new Date(currentDate.setSeconds(currentDate.getSeconds() + 
+                ((data.type == "d") 
+                    ? 60 * 60 * 24 // If daily type
+                    : data.timeToResetInSeconds))); // or custom one
+        }
+    }
     try {
         const task = await Task.create(data);
 		res.status(200).json({ message: 'Task created!', request_body: task});
@@ -37,7 +45,7 @@ export const setTaskAsCompleted = async (req: Request, res: Response) => {
         }
 
         // Handle daily or custom tasks
-        if(task.type != "o") {
+        if(task.type != "o" && task.timeToResetInSeconds) {
 
             // Calculate date this task will be shown again
             const originalCurrentDate = new Date();
@@ -51,6 +59,7 @@ export const setTaskAsCompleted = async (req: Request, res: Response) => {
     
             const completedTask = await task.save();
             res.status(201).json({ message: 'Task completed!', request_body: completedTask});
+            return;
         }
 
         // Handle one-use tasks (auto deletion)
