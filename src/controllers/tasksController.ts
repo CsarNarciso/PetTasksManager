@@ -1,27 +1,23 @@
 import { Request, Response} from 'express';
 import Task from '../schemas/taskSchema';
-import { time } from 'console';
 
 // POST
 export const createTask = async (req: Request, res: Response) => {
     const data = new Task(req.body);
     
-    // Calculate time to enable (show) task based on type
+    // Enable (show) task instantly
     const currentDate = new Date();
+    data.showAt = currentDate;
+    
+    // Calculate time to reset (show again) task based on type
+    
+    // Handle daily time
+    if(data.type && data.type == "d")
+        data.timeToResetInSeconds = 60 * 60 * 24;
+    
+    // Custom type tasks already contain custom 'timeToResetInSeconds',
+    // while One-use ones do not require this attribute (they auto-delete on complete)
 
-    // Handle One-use type
-    if(data.type == "o") {
-        data.showAt = currentDate;
-    }
-    else {
-        if(data.type && data.timeToResetInSeconds) {
-
-            data.showAt = new Date(currentDate.setSeconds(currentDate.getSeconds() + 
-                ((data.type == "d") 
-                    ? 60 * 60 * 24 // If daily type
-                    : data.timeToResetInSeconds))); // or custom one
-        }
-    }
     try {
         const task = await Task.create(data);
 		res.status(200).json({ message: 'Task created!', request_body: task});
