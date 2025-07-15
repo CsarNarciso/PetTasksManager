@@ -19,13 +19,4 @@ async function findByEmail(email: string) {
 async function findByUsername(username: string) {
     return User.findOne({ username });
 }
-
-export async function deleteUser(username: string) {
-    await User.findOneAndDelete({ username });
-    // Verify user was deleted
-    const user = await User.findOne({ username });
-    if (!user) return true;
-    return false;
-}
-
 export default {create, findByEmail, findByUsername};

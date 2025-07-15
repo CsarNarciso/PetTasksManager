@@ -14,7 +14,7 @@ interface JwtPayloadWithUser extends jwt.JwtPayload {
 
 
 
-const authetnicate = async (req: Request, res: Response, next: NextFunction) => {
+const authenticate = async (req: Request, res: Response, next: NextFunction) => {
 
     // Get request cookies token
     const token = req.cookies.token;
@@ -48,4 +48,4 @@ const authetnicate = async (req: Request, res: Response, next: NextFunction) => 
     }
 };
 
-export default authetnicate;
+export default authenticate;

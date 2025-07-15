@@ -2,30 +2,24 @@ import { Request, Response} from 'express';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import userSchema from '../schemas/userSchema';
-import { deleteUser } from "../services/userService";
+import User from "../schemas/userSchema";
 
 require('dotenv').config();
 const JWT_SECRET = process.env.JWT_SECRET as string;
 
 export const deleteAccount = async (req: Request, res: Response) => {
-    const token = req.cookies.token;
-    const { password } = req.body;
+    const { username } = req.body;
 
-    if (!token) res.status(401).json({ error: "Not authenticated" });
-
-    
     try {
-        const decoded = jwt.verify(token, JWT_SECRET) as { username: string, password: string };
-        
-        if (!bcrypt.compare(decoded.password, password)) res.status(401).json({ error:"Credentials are invalid (provided password)" })
-
-        const userIsDeleted = deleteUser(decoded.username);
-
-        if (!userIsDeleted) res.status(403).json({ error: "User was not deleted" });
-        res.status(200).json({ message: "User was deleted successfully" })
-        
-    } catch (error) {
-        res.status(500).json({ error: `Unexpected error: ${error}` });
+        try {
+            await User.findOneAndDelete({ username });
+        } catch (err) {
+            res.status(404).json({ error: "Account not found to be deleted" });
+        }
+        res.clearCookie('token');
+        res.status(200).json({ message: "Account was successfully deleted" })
+    } catch (err) {
+        res.status(500).json({ error: `Error during trying to delete account: ${err}` });
     }
 }
 
