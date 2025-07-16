@@ -5,22 +5,20 @@ import userSchema from '../schemas/userSchema';
 import User from "../schemas/userSchema";
 
 require('dotenv').config();
+// const ACCESS_TOKEN_SECRET = process.env.ACCESS_TOKEN_SECRET as string;
 const JWT_SECRET = process.env.JWT_SECRET as string;
+
 
 export const deleteAccount = async (req: Request, res: Response) => {
     const { username } = req.body;
 
     try {
-        const deletedUser = await User.findOneAndDelete({ username });
-
-        if (!deletedUser) {
-            res.status(404).json({ error: "Account not found to be deleted" });
-        }
-
+        await User.findOneAndDelete({ username });
         res.clearCookie('token');
         res.status(200).json({ message: "Account was successfully deleted" });
+
     } catch (err) {
-        res.status(500).json({ error: `Error during trying to delete account: ${err}` });
+        res.status(401).json({ error: `Authentication error: ${err}` });
     }
 };
 
