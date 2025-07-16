@@ -11,17 +11,19 @@ export const deleteAccount = async (req: Request, res: Response) => {
     const { username } = req.body;
 
     try {
-        try {
-            await User.findOneAndDelete({ username });
-        } catch (err) {
+        const deletedUser = await User.findOneAndDelete({ username });
+
+        if (!deletedUser) {
             res.status(404).json({ error: "Account not found to be deleted" });
         }
+
         res.clearCookie('token');
-        res.status(200).json({ message: "Account was successfully deleted" })
+        res.status(200).json({ message: "Account was successfully deleted" });
     } catch (err) {
         res.status(500).json({ error: `Error during trying to delete account: ${err}` });
     }
-}
+};
+
 
 export const fetchAuthUserData = async (req: Request, res: Response) => {
     const token = req.cookies.token; 
